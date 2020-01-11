@@ -29,7 +29,6 @@ These instructions will get you a copy of the project up and running on your loc
         lib  
         share  
         x86_64-w64-mingw32  
-        <other files>  
 </pre>
 
 3. If you do not already have VS Code, download and install it from here: https://code.visualstudio.com/download.
@@ -42,7 +41,6 @@ These instructions will get you a copy of the project up and running on your loc
         .vscode  
         CopyBooks  
         Data  
-        <other files>  
 </pre>
 
 5. Run VS Code and select File/Open Folder..., and open the above COB-FAKER folder to get started.
