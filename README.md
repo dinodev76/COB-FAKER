@@ -21,6 +21,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 2. Rename the '.7z' to '.exe' and run it, or use 7-Zip to extract all folders/files to C:\GnuCOBOL (or your desired location).  Your folder structure should look like this:
 
+<pre>
     GnuCOBOL  
         bin  
         etc  
@@ -29,17 +30,20 @@ These instructions will get you a copy of the project up and running on your loc
         share  
         x86_64-w64-mingw32  
         <other files>  
+</pre>
 
 3. If you do not already have VS Code, download and install it from here: https://code.visualstudio.com/download.
 
 4. Download the COB-FAKER project, e.g. to C:\COB-FAKER.  Your folder structure should look something like this:
 
+<pre>
     COB-FAKER  
         .git  
         .vscode  
         CopyBooks  
         Data  
         <other files>  
+</pre>
 
 5. Run VS Code and select File/Open Folder..., and open the above COB-FAKER folder to get started.
 
