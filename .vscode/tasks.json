@@ -72,11 +72,7 @@
                 "-v",
                 "-debug"
             ],
-            "problemMatcher": "$gnucobol-cobc",
-            "group":
-            {
-                "kind": "build"
-            }
+            "problemMatcher": "$gnucobol-cobc"
         },
         {
             "label": "Compile and Run FAKERTST",
