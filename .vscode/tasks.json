@@ -1,1 +1,102 @@
-Temp
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "options":
+    {
+        "env": 
+        {
+            "COB_CONFIG_DIR":   "C:\\GnuCOBOL\\share\\gnucobol\\config",
+            "COB_COPY_DIR":     "C:\\GnuCOBOL\\share\\gnucobol\\copy",
+            "MINGW_ROOT_PATH":  "C:\\GnuCOBOL\\",
+            "PATH":             "C:\\GnuCOBOL\\bin"       
+        }
+    },
+    "tasks":
+    [
+        {
+            "label": "Compile FAKERGEN Programs",
+            "type": "shell",
+            "command": "C:\\GnuCOBOL\\bin\\cobc",
+            "args":
+            [
+                "-x",
+                "-o",
+                "FAKERGEN.exe",
+                "FAKERGEN.cob",
+                "FAKER.cob",
+                "FAKADDR.cob",
+                "FAKCOMP.cob",
+                "FAKPERS.cob",
+                "FAKRAND.cob",
+                "-I${workspaceFolder}\\CopyBooks",
+                "-std=cobol2002",
+                "-v",
+                "-debug"
+            ],
+            "problemMatcher": "$gnucobol-cobc",
+            "group":
+            {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Compile and Run FAKERGEN",
+            "type": "shell",
+            "command": "${workspaceFolder}\\FAKERGEN.exe",
+            "args": [],
+            "dependsOn":
+            [
+                "Compile FAKERGEN Programs"
+            ],
+            "problemMatcher": "$gnucobol-cobc"
+        },
+        {
+            "label": "Compile FAKERTST Programs",
+            "type": "shell",
+            "command": "C:\\GnuCOBOL\\bin\\cobc",
+            "args":
+            [
+                "-x",
+                "-o",
+                "FAKERTST.exe",
+                "FAKERTST.cob",
+                "FAKER.cob",
+                "FAKADDR.cob",
+                "FAKCOMP.cob",
+                "FAKPERS.cob",
+                "FAKRAND.cob",
+                "-I${workspaceFolder}\\CopyBooks",
+                "-std=cobol2002",
+                "-v",
+                "-debug"
+            ],
+            "problemMatcher": "$gnucobol-cobc",
+            "group":
+            {
+                "kind": "build"
+            }
+        },
+        {
+            "label": "Compile and Run FAKERTST",
+            "type": "shell",
+            "command": "${workspaceFolder}\\FAKERTST.exe",
+            "args": [],
+            "dependsOn":
+            [
+                "Compile FAKERTST Programs"
+            ],
+            "problemMatcher": "$gnucobol-cobc"
+        },
+        {
+            "label": "Run SET to see environment variables",
+            "type": "shell",
+            "command": "set",
+            "args":
+            [
+            ],
+            "problemMatcher": "$gnucobol-cobc"
+        },
+    ]
+}
