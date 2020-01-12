@@ -31,6 +31,9 @@
                 "FAKRAND.cob",
                 "-I${workspaceFolder}\\CopyBooks",
                 "-std=cobol2002",
+                "-T",
+                "${workspaceFolder}\\Listings\\FAKERGEN.lst",
+                "--tsymbols",
                 "-v",
                 "-debug"
             ],
@@ -69,6 +72,9 @@
                 "FAKRAND.cob",
                 "-I${workspaceFolder}\\CopyBooks",
                 "-std=cobol2002",
+                "-T",
+                "${workspaceFolder}\\Listings\\FAKERTST.lst",
+                "--tsymbols",
                 "-v",
                 "-debug"
             ],

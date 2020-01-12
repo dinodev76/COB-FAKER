@@ -33,6 +33,8 @@
 
        01  W-POINTER               PIC S9(4)  COMP.
        01  W-POSTCODE              PIC 9(05).
+       01  W-HASH                  PIC X(01)       VALUE '#'.
+       01  W-PERCENT               PIC X(01)       VALUE '%'.
        01  W-FAKPERS-PROG          PIC X(08)       VALUE 'FAKPERS'.
        01  W-FAKRAND-PROG          PIC X(08)       VALUE 'FAKRAND'.
 
@@ -660,7 +662,8 @@
 
            INSPECT W-FAKER-RESULT
                              TALLYING W-DIGIT-CNT
-                              FOR ALL '#'
+                              FOR ALL W-HASH
+                                      W-PERCENT
 
            IF      W-DIGIT-CNT > 0
                PERFORM SUB-9810-REPLACE-DIGIT THRU SUB-9810-EXIT
@@ -674,14 +677,23 @@
        SUB-9810-REPLACE-DIGIT.
       *-----------------------
 
-           IF      W-FAKER-RESULT(W-SUB-D : 1) NOT = '#'
+           IF      W-FAKER-RESULT(W-SUB-D : 1) NOT = W-HASH
+           AND                                       W-PERCENT
                GO TO SUB-9810-EXIT
            END-IF
 
            PERFORM SUB-9901-CALL-FAKRAND THRU SUB-9901-EXIT
 
-           COMPUTE W-RANDOM-DIG    =  FAKRAND-RANDOM-NO
+           IF      W-FAKER-RESULT(W-SUB-D : 1) = W-PERCENT
+               COMPUTE W-RANDOM-DIG
+                                   =  FAKRAND-RANDOM-NO
+                                      * 9
+                                      + 1
+           ELSE       
+               COMPUTE W-RANDOM-DIG
+                                   =  FAKRAND-RANDOM-NO
                                       * 10
+           END-IF
 
            MOVE W-RANDOM-DIG       TO W-FAKER-RESULT(W-SUB-D : 1)
            .

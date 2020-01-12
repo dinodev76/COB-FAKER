@@ -17,6 +17,11 @@
       ****     SP = state_postcode
       ****     2A = secondary_address
 
+      **** All hash sign ('#') occurrences are replaced with a random
+      **** digit (0 to 9).
+      **** All percentage sign ('%') occurrences are replaced with a
+      **** random non-zero digit (1 to 9).
+
        01  FORMATS-CITY.
            05  FORMAT-CITY-CNT     PIC S9(4)  COMP VALUE 4.
            05  FORMAT-CITY-WEIGHT-TOT
@@ -151,9 +156,9 @@
            05  BUILDING-NUMBER-FORMAT-CNT
                                    PIC S9(4)  COMP VALUE 3.
            05  BUILDING-NUMBER-FORMAT-OCCS.
-               10  FILLER          PIC X(14)       VALUE '#####'.
-               10  FILLER          PIC X(14)       VALUE '####'.
-               10  FILLER          PIC X(14)       VALUE '###'.
+               10  FILLER          PIC X(14)       VALUE '%####'.
+               10  FILLER          PIC X(14)       VALUE '%###'.
+               10  FILLER          PIC X(14)       VALUE '%##'.
            05  FILLER REDEFINES BUILDING-NUMBER-FORMAT-OCCS.
                10  FILLER                          OCCURS 3
                                                    INDEXED BNF-DX.
@@ -398,8 +403,8 @@
            05  SECONDARY-ADDRESS-FORMAT-CNT
                                    PIC S9(4)  COMP VALUE 2.
            05  SECONDARY-ADDRESS-FORMAT-OCCS.
-               10  FILLER          PIC X(14)       VALUE 'Apt ###'.
-               10  FILLER          PIC X(14)       VALUE 'Ste ###'.
+               10  FILLER          PIC X(14)       VALUE 'Apt %##'.
+               10  FILLER          PIC X(14)       VALUE 'Ste %##'.
            05  FILLER REDEFINES SECONDARY-ADDRESS-FORMAT-OCCS.
                10  FILLER                          OCCURS 2
                                                    INDEXED PF-DX.
@@ -650,8 +655,8 @@
            05  MILITARY-APO-FORMAT-CNT
                                    PIC S9(4)  COMP VALUE 2.
            05  MILITARY-APO-FORMAT-OCCS.
-               10  FILLER          PIC X(14)       VALUE 'PSC ####'.
-               10  FILLER          PIC X(14)       VALUE 'Box ####'.
+               10  FILLER          PIC X(14)       VALUE 'PSC %###'.
+               10  FILLER          PIC X(14)       VALUE 'Box %###'.
            05  FILLER REDEFINES MILITARY-APO-FORMAT-OCCS.
                10  FILLER                          OCCURS 2
                                                    INDEXED MAF-DX.
@@ -662,8 +667,8 @@
            05  MILITARY-DPO-FORMAT-CNT
                                    PIC S9(4)  COMP VALUE 2.
            05  MILITARY-DPO-FORMAT-OCCS.
-               10  FILLER          PIC X(14)       VALUE 'Unit ####'.
-               10  FILLER          PIC X(14)       VALUE 'Box ####'.
+               10  FILLER          PIC X(14)       VALUE 'Unit %###'.
+               10  FILLER          PIC X(14)       VALUE 'Box %###'.
            05  FILLER REDEFINES MILITARY-DPO-FORMAT-OCCS.
                10  FILLER                          OCCURS 2
                                                    INDEXED MDF-DX.

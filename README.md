@@ -61,4 +61,8 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-* Many thanks to those who developed the Python Faker and its predecessors - see https://github.com/joke2k/faker.
+* Many thanks to the following:
+
+* 1. Arnold Trembley for the GnuCOBOL builds and instructions - see https://www.arnoldtrembley.com/.
+* 2. The many developers of GnuCOBOL and its predecessors - see https://sourceforge.net/projects/open-cobol/.
+* 3. Those who developed the Python Faker and its predecessors - see https://github.com/joke2k/faker.
