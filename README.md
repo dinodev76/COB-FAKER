@@ -28,7 +28,7 @@ These instructions will get you a copy of the project up and running on your loc
         include  
         lib  
         share  
-        x86_64-w64-mingw32  
+        x86_64-w64-mingw32 
 </pre>
 
 3. If you do not already have VS Code, download and install it from here: https://code.visualstudio.com/download.
@@ -37,7 +37,6 @@ These instructions will get you a copy of the project up and running on your loc
 
 <pre>
     COB-FAKER  
-        .git  
         .vscode  
         CopyBooks  
         Data
