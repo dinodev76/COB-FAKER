@@ -31,3 +31,9 @@ PERSON-PREFIX-FEMALE          000010
 PERSON-SUFFIX                 000010
 PERSON-SUFFIX-MALE            000010
 PERSON-SUFFIX-FEMALE          000010
+TAXID-EIN                     000010
+TAXID-EIN-HYPHEN              000010
+TAXID-ITIN                    000010
+TAXID-ITIN-HYPHEN             000010
+TAXID-SSN                     000010
+TAXID-SSN-HYPHEN              000010

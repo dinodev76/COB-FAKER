@@ -77,6 +77,18 @@
                                    'PERSON-SUFFIX-MALE'.    
                88  PERSON-SUFFIX-FEMALE            VALUE 
                                    'PERSON-SUFFIX-FEMALE'. 
+               88  TAXID-EIN                       VALUE 
+                                   'TAXID-EIN'. 
+               88  TAXID-EIN-HYPHEN                VALUE 
+                                   'TAXID-EIN-HYPHEN'. 
+               88  TAXID-ITIN                      VALUE 
+                                   'TAXID-ITIN'. 
+               88  TAXID-ITIN-HYPHEN               VALUE 
+                                   'TAXID-ITIN-HYPHEN'. 
+               88  TAXID-SSN                       VALUE 
+                                   'TAXID-SSN'. 
+               88  TAXID-SSN-HYPHEN                VALUE 
+                                   'TAXID-SSN-HYPHEN'. 
 
            05  FAKER-SEED-NO       PIC S9(9)  COMP VALUE 0.
 

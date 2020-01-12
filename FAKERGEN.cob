@@ -31,11 +31,11 @@
        FD  GNRTFILE.
 
        01  GNRTFILE-REC.
+           05  G-TAXID-SSN         PIC X(12).
            05  G-PERSON-PREFIX     PIC X(10).
            05  G-PERSON-FIRST-NAME PIC X(25). 
            05  G-PERSON-LAST-NAME  PIC X(35). 
            05  G-PERSON-SUFFIX     PIC X(10).
-           05  G-SSN               PIC X(10).
            05  G-ADDRESS-STREET    PIC X(35).
            05  G-ADDRESS-CITY      PIC X(25).
            05  G-ADDRESS-STATE     PIC X(10).
@@ -103,9 +103,20 @@
        SUB-2000-PROCESS.
       *-----------------
 
-           SET  PERSON-NAME        TO TRUE
            ADD  1                  TO W-REC-CNT
       *    MOVE W-REC-CNT          TO FAKER-SEED-NO
+
+      **** TAXID:
+
+           SET  TAXID-SSN-HYPHEN   TO TRUE
+
+           PERFORM SUB-2100-CALL-FAKER THRU SUB-2100-EXIT
+
+           MOVE FAKER-RESULT       TO G-TAXID-SSN             
+
+      **** PERSON:
+
+           SET  PERSON-NAME        TO TRUE
 
            PERFORM SUB-2100-CALL-FAKER THRU SUB-2100-EXIT
 
@@ -117,7 +128,8 @@
                                    TO G-PERSON-LAST-NAME
            MOVE FAKER-PERSON-SUFFIX
                                    TO G-PERSON-SUFFIX   
-           MOVE SPACES             TO G-SSN             
+
+      **** ADDRESS:
 
            SET  ADDRESS-ADDRESS    TO TRUE
            

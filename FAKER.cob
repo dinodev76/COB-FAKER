@@ -33,7 +33,7 @@
        01  W-FAKADDR-PROG          PIC X(08)       VALUE 'FAKADDR'.
        01  W-FAKCOMP-PROG          PIC X(08)       VALUE 'FAKCOMP'.
        01  W-FAKPERS-PROG          PIC X(08)       VALUE 'FAKPERS'.
-       01  W-FAKSSN-PROG           PIC X(08)       VALUE 'FAKSSN'.
+       01  W-FAKTXID-PROG          PIC X(08)       VALUE 'FAKTXID'.
 
        01  W-ERROR-MSG             PIC X(18)       VALUE
            '**** FAKER error: '.
@@ -118,8 +118,8 @@
              WHEN 'PERSON'
                CALL W-FAKPERS-PROG
                                 USING L-PARAMETER
-             WHEN 'SSN'
-               CALL W-FAKSSN-PROG
+             WHEN 'TAXID'
+               CALL W-FAKTXID-PROG
                                 USING L-PARAMETER
              WHEN OTHER
                DISPLAY W-ERROR-MSG
