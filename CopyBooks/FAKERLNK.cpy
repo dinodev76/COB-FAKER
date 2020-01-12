@@ -1,3 +1,13 @@
+      *========================== COB-FAKER ===========================*
+      * Authors: Brian D Pead
+      *
+      * License: MIT
+      *
+      * Date        Version  Description
+      * ----        -------  -----------
+      * 2020-01-12  0.1      First release
+      *================================================================*
+
       **** Input fields:
       ****     FAKER-PROVIDER-FUNCTION:
       ****         Set appropriate 88 level for  desired function.

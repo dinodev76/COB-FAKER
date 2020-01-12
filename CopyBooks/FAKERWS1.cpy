@@ -1,3 +1,13 @@
+      *========================== COB-FAKER ===========================*
+      * Authors: Brian D Pead
+      *
+      * License: MIT
+      *
+      * Date        Version  Description
+      * ----        -------  -----------
+      * 2020-01-12  0.1      First release
+      *================================================================*
+
        01  W-FOUND-DX              PIC S9(4)  COMP.
        01  W-RANDOM-NO             PIC S9(4)V9(9)
                                               COMP.

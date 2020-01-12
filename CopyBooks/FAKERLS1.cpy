@@ -1,3 +1,13 @@
+      *========================== COB-FAKER ===========================*
+      * Authors: Brian D Pead
+      *
+      * License: MIT
+      *
+      * Date        Version  Description
+      * ----        -------  -----------
+      * 2020-01-12  0.1      First release
+      *================================================================*
+
        01  L-FORMAT-TABLE-1.
            05  L-FORMAT-ENTRY-CNT-1
                                    PIC S9(4)  COMP.

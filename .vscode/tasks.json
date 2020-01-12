@@ -1,6 +1,17 @@
 {
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
+
+    //*========================== COB-FAKER ===========================*
+    //* Authors: Brian D Pead
+    //*
+    //* License: MIT
+    //*
+    //* Date        Version  Description
+    //* ----        -------  -----------
+    //* 2020-01-12  0.1      First release
+    //*================================================================*
+
     "version": "2.0.0",
     "options":
     {

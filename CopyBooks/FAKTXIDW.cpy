@@ -1,3 +1,13 @@
+      *========================== COB-FAKER ===========================*
+      * Authors: Brian D Pead
+      *
+      * License: MIT
+      *
+      * Date        Version  Description
+      * ----        -------  -----------
+      * 2020-01-12  0.1      First release
+      *================================================================*
+
       **** A United States Employer Identification Number (EIN) is
       **** also known as a Federal Tax Identification Number, and is
       **** used to identify a business entity.

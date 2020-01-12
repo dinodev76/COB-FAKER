@@ -1,9 +1,17 @@
+      *========================== COB-FAKER ===========================*
+      * Authors: Brian D Pead
+      *
+      * License: MIT
+      *
+      * Date        Version  Description
+      * ----        -------  -----------
+      * 2020-01-12  0.1      First release
+      *================================================================*
+
        IDENTIFICATION DIVISION.
       *========================
 
        PROGRAM-ID.             FAKERTST.
-      *AUTHOR.                 BRIAN D PEAD.
-      *DATE-WRITTEN.           2020-01-04.
 
        ENVIRONMENT DIVISION.
       *=====================

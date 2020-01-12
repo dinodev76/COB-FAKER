@@ -1,3 +1,13 @@
+      *========================== COB-FAKER ===========================*
+      * Authors: Brian D Pead
+      *
+      * License: MIT
+      *
+      * Date        Version  Description
+      * ----        -------  -----------
+      * 2020-01-12  0.1      First release
+      *================================================================*
+
       **** FORMAT CODES:
       ****     BN = building_number
       ****     CP = city_prefix

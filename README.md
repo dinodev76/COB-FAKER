@@ -22,7 +22,7 @@ These instructions will get you a copy of the project up and running on your loc
 2. Rename the '.7z' to '.exe' and run it, or use 7-Zip to extract all folders/files to C:\GnuCOBOL (or your desired location).  Your folder structure should look like this:
 
 <pre>
-    GnuCOBOL  
+    GnuCOBOL   
         bin  
         etc  
         include  
