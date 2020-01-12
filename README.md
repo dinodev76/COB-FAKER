@@ -40,7 +40,8 @@ These instructions will get you a copy of the project up and running on your loc
         .git  
         .vscode  
         CopyBooks  
-        Data  
+        Data
+        Listings  
 </pre>
 
 5. Run VS Code and select File/Open Folder..., and open the above COB-FAKER folder to get started.
