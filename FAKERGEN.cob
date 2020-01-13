@@ -40,14 +40,20 @@
 
        01  GNRTFILE-REC.
            05  G-TAXID-SSN         PIC X(12).
-           05  G-PERSON-PREFIX     PIC X(10).
-           05  G-PERSON-FIRST-NAME PIC X(25). 
-           05  G-PERSON-LAST-NAME  PIC X(35). 
-           05  G-PERSON-SUFFIX     PIC X(10).
-           05  G-ADDRESS-STREET    PIC X(35).
-           05  G-ADDRESS-CITY      PIC X(25).
-           05  G-ADDRESS-STATE     PIC X(10).
-           05  G-ADDRESS-POSTCODE  PIC X(10).
+           05  G-PERSON.
+               10  G-PERSON-PREFIX PIC X(10).
+               10  G-PERSON-FIRST-NAME
+                                   PIC X(25). 
+               10  G-PERSON-LAST-NAME
+                                   PIC X(35). 
+               10  G-PERSON-SUFFIX PIC X(10).
+           05  G-ADDRESS.
+               10  G-ADDRESS-STREET
+                                   PIC X(35).
+               10  G-ADDRESS-CITY  PIC X(25).
+               10  G-ADDRESS-STATE PIC X(10).
+               10  G-ADDRESS-POSTCODE
+                                   PIC X(10).
 
        WORKING-STORAGE SECTION.
       *------------------------
@@ -93,15 +99,13 @@
            MOVE FUNCTION WHEN-COMPILED 
                                    TO W-COMPILED-DATE
 
-           DISPLAY 'FAKERGEN Compiled = '
+           DISPLAY 'FAKERGEN compiled on '
                W-COMPILED-DATE-YYYY '/'
                W-COMPILED-DATE-MM   '/'
-               W-COMPILED-DATE-DD   ' '
+               W-COMPILED-DATE-DD   ' at '
                W-COMPILED-TIME-HH   ':'
                W-COMPILED-TIME-MM   ':'
                W-COMPILED-TIME-SS
-
-           DISPLAY ' '
 
            OPEN OUTPUT GNRTFILE
            .
@@ -120,7 +124,11 @@
 
            PERFORM SUB-2100-CALL-FAKER THRU SUB-2100-EXIT
 
-           MOVE FAKER-RESULT       TO G-TAXID-SSN             
+           IF      FAKER-RESPONSE-GOOD
+               MOVE FAKER-RESULT   TO G-TAXID-SSN
+           ELSE
+               MOVE 'ERROR'        TO G-TAXID-SSN
+           END-IF
 
       **** PERSON:
 
@@ -128,14 +136,19 @@
 
            PERFORM SUB-2100-CALL-FAKER THRU SUB-2100-EXIT
 
-           MOVE FAKER-PERSON-PREFIX
+           IF      FAKER-RESPONSE-GOOD
+               MOVE FAKER-PERSON-PREFIX
                                    TO G-PERSON-PREFIX
-           MOVE FAKER-PERSON-FIRST-NAME
+               MOVE FAKER-PERSON-FIRST-NAME
                                    TO G-PERSON-FIRST-NAME
-           MOVE FAKER-PERSON-LAST-NAME
+               MOVE FAKER-PERSON-LAST-NAME
                                    TO G-PERSON-LAST-NAME
-           MOVE FAKER-PERSON-SUFFIX
-                                   TO G-PERSON-SUFFIX   
+               MOVE FAKER-PERSON-SUFFIX
+                                   TO G-PERSON-SUFFIX
+           ELSE
+               MOVE FAKER-RESPONSE-MSG
+                                   TO G-PERSON
+           END-IF
 
       **** ADDRESS:
 
@@ -143,13 +156,19 @@
            
            PERFORM SUB-2100-CALL-FAKER THRU SUB-2100-EXIT
 
-           MOVE FAKER-ADDRESS-STREET
+           IF      FAKER-RESPONSE-GOOD
+               MOVE FAKER-ADDRESS-STREET
                                    TO G-ADDRESS-STREET  
-           MOVE FAKER-ADDRESS-CITY TO G-ADDRESS-CITY    
-           MOVE FAKER-ADDRESS-STATE
+               MOVE FAKER-ADDRESS-CITY 
+                                   TO G-ADDRESS-CITY    
+               MOVE FAKER-ADDRESS-STATE
                                    TO G-ADDRESS-STATE   
-           MOVE FAKER-ADDRESS-POSTCODE
+               MOVE FAKER-ADDRESS-POSTCODE
                                    TO G-ADDRESS-POSTCODE
+           ELSE
+               MOVE FAKER-RESPONSE-MSG
+                                   TO G-ADDRESS
+           END-IF 
 
            PERFORM SUB-9100-WRITE-GNRTFILE THRU SUB-9100-EXIT
            .
@@ -160,6 +179,13 @@
       *--------------------
 
            CALL W-FAKER-PROG    USING W-FAKER-PARAMETER 
+
+           IF      NOT FAKER-RESPONSE-GOOD
+               DISPLAY W-ERROR-MSG
+                       FAKER-RESPONSE-CODE
+                       ' - '
+                       FAKER-RESPONSE-MSG
+           END-IF
 
       D    PERFORM VARYING FI-DX FROM 1 BY 1
       D              UNTIL FI-DX > FAKER-INFO-CNT
@@ -179,9 +205,7 @@
       
            CLOSE GNRTFILE
 
-           DISPLAY ' '
-
-           DISPLAY 'FAKERGEN Successfully Completed'
+           DISPLAY 'FAKERGEN Completed'
            .
        SUB-3000-EXIT.
            EXIT.

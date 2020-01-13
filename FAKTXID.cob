@@ -45,9 +45,6 @@
        01  W-SERIAL                PIC 9(04).
        01  W-FAKRAND-PROG          PIC X(8)        VALUE 'FAKRAND'.
 
-       01  W-ERROR-MSG             PIC X(20)       VALUE
-           '**** FAKTXID error: '.
-
        01  W-FAKRAND-PARAMETER.    COPY FAKRANDL.
 
        COPY FAKTXIDW.
@@ -86,15 +83,13 @@
            MOVE FUNCTION WHEN-COMPILED 
                                    TO W-COMPILED-DATE
 
-           DISPLAY 'FAKTXID Compiled = '
+           DISPLAY 'FAKTXID  compiled on '
                W-COMPILED-DATE-YYYY '/'
                W-COMPILED-DATE-MM   '/'
-               W-COMPILED-DATE-DD   ' '
+               W-COMPILED-DATE-DD   ' at '
                W-COMPILED-TIME-HH   ':'
                W-COMPILED-TIME-MM   ':'
                W-COMPILED-TIME-SS
-
-           DISPLAY ' '
            .
        SUB-1000-EXIT.
            EXIT.
@@ -141,10 +136,12 @@
                                    TO FAKER-RESULT
 
              WHEN OTHER
-               DISPLAY W-ERROR-MSG
-                       'Unknown function ignored: '
+               SET  FAKER-UNKNOWN-FUNCTION
+                                   TO TRUE
+               STRING 'Unknown FAKTXID function "'
                        FAKER-PROVIDER-FUNCTION
-                                   IN L-PARAMETER
+                       '"'  DELIMITED SIZE
+                                 INTO FAKER-RESPONSE-MSG
                GO TO SUB-2000-EXIT
            END-EVALUATE
 
@@ -156,9 +153,14 @@
        SUB-3000-SHUT-DOWN.
       *-------------------
 
-      D    DISPLAY ' '
-
-      D    DISPLAY 'FAKTXID Successfully Completed'
+      D    IF      FAKER-RESPONSE-GOOD
+      D        DISPLAY 'FAKTXID completed successfully'
+      D    ELSE
+      D        DISPLAY 'FAKTXID ended with error '
+      D                FAKER-RESPONSE-CODE
+      D                ': '
+      D                FAKER-RESPONSE-MSG
+      D    END-IF
            .
        SUB-3000-EXIT.
            EXIT.

@@ -46,9 +46,6 @@
            05  W-SEED-TEXT-CHARS                   OCCURS 40.
                10  W-SEED-TEXT-NO  PIC 9(4)   COMP.             
 
-       01  W-ERROR-MSG             PIC X(20)       VALUE
-           '**** FAKRAND error: '.
-
        01  FILLER                  PIC X(01)       VALUE 'Y'.
            88  W-FIRST-CALL                        VALUE 'Y'.
            88  W-NOT-FIRST-CALL                    VALUE 'N'.
@@ -99,15 +96,13 @@
            MOVE FUNCTION WHEN-COMPILED 
                                    TO W-COMPILED-DATE
 
-           DISPLAY 'FAKRAND Compiled = '
+           DISPLAY 'FAKRAND  compiled on '
                W-COMPILED-DATE-YYYY '/'
                W-COMPILED-DATE-MM   '/'
-               W-COMPILED-DATE-DD   ' '
+               W-COMPILED-DATE-DD   ' at '
                W-COMPILED-TIME-HH   ':'
                W-COMPILED-TIME-MM   ':'
                W-COMPILED-TIME-SS
-
-           DISPLAY ' '
 
            MOVE FUNCTION CURRENT-DATE
                                    TO W-CURRENT-DATE
@@ -148,7 +143,7 @@
        SUB-2100-HASH-SEED-TEXT.
       *------------------------
 
-           move FAKRAND-SEED-TEXT  TO W-SEED-TEXT
+           MOVE FAKRAND-SEED-TEXT  TO W-SEED-TEXT
 
            PERFORM VARYING W-SUB FROM 40 BY -1
                      UNTIL W-SUB < 1
@@ -160,8 +155,8 @@
                END-IF
            END-PERFORM
 
-           DISPLAY 'HASHED SEED: '
-                   W-SEED-NO
+      D     DISPLAY 'FAKRAND hashed seed: '
+      D             W-SEED-NO
            .
        SUB-2100-EXIT.
            EXIT.

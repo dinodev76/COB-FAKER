@@ -91,15 +91,13 @@
            MOVE FUNCTION WHEN-COMPILED 
                                    TO W-COMPILED-DATE
 
-           DISPLAY 'FAKERTST Compiled = '
+           DISPLAY 'FAKERTST compiled on '
                W-COMPILED-DATE-YYYY '/'
                W-COMPILED-DATE-MM   '/'
-               W-COMPILED-DATE-DD   ' '
+               W-COMPILED-DATE-DD   ' at '
                W-COMPILED-TIME-HH   ':'
                W-COMPILED-TIME-MM   ':'
                W-COMPILED-TIME-SS
-
-           DISPLAY ' '
 
            OPEN INPUT TESTFILE
            .
@@ -133,17 +131,24 @@
 
            CALL W-FAKER-PROG    USING W-FAKER-PARAMETER 
 
-           DISPLAY TEST-PROVIDER-FUNCTION
-                   ': '
-                   FAKER-RESULT
-
-           IF      ADDRESS-ADDRESS
-           OR      PERSON-NAME
-           OR      PERSON-NAME-MALE
-           OR      PERSON-NAME-FEMALE
-               DISPLAY '                              '
+           IF      FAKER-RESPONSE-GOOD
+               DISPLAY TEST-PROVIDER-FUNCTION
                        ': '
-                       FAKER-RESULT-FIELDS
+                       FAKER-RESULT
+
+               IF      ADDRESS-ADDRESS
+               OR      PERSON-NAME
+               OR      PERSON-NAME-MALE
+               OR      PERSON-NAME-FEMALE
+                   DISPLAY '                              '
+                           ': '
+                           FAKER-RESULT-FIELDS
+               END-IF
+           ELSE
+               DISPLAY W-ERROR-MSG
+                       FAKER-RESPONSE-CODE
+                       ' - '
+                       FAKER-RESPONSE-MSG
            END-IF
 
       D    PERFORM VARYING FI-DX FROM 1 BY 1
@@ -164,9 +169,7 @@
       
            CLOSE TESTFILE
 
-           DISPLAY ' '
-
-           DISPLAY 'FAKERTST Successfully Completed'
+           DISPLAY 'FAKERTST completed'
            .
        SUB-3000-EXIT.
            EXIT.

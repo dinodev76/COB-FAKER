@@ -11,9 +11,15 @@
       **** Input fields:
       ****     FAKER-PROVIDER-FUNCTION:
       ****         Set appropriate 88 level for  desired function.
-      ****     FAKER-SEED-TEXT: 
-      ****         If not spaces, used to set seed to get same random
+      ****     FAKER-SEED-NO: 
+      ****         If > 0, used to set seed to get same random
       ****         sequence on each call.
+      ****     FAKER-SEED-TEXT: 
+      ****         If FAKER-SEED-NO = 0 and this is not spaces, used to
+      ****         set seed to get same random sequence on each call
+      ****         (e.g. to get same fake name each time real name is
+      ****         being anonymized, move real name to FAKER-SEED-TEXT
+      ****         before call). 
 
            05  FAKER-PROVIDER-FUNCTION
                                    PIC X(30).
@@ -100,9 +106,32 @@
                88  TAXID-SSN-HYPHEN                VALUE 
                                    'TAXID-SSN-HYPHEN'. 
 
-           05  FAKER-SEED-NO       PIC S9(9)  COMP VALUE 0.
+           05  FAKER-SEED-NO       PIC 9(9)   COMP VALUE 0.
 
            05  FAKER-SEED-TEXT     PIC X(80)       VALUE SPACES.
+
+      **** Output fields:
+      ****     FAKER-RESPONSE-CODE
+      ****         Use 88 levels to determine result of calls.
+      ****     FAKER-RESPONSE-MSG
+      ****         Non-space if bad response.
+      ****     FAKER-RESULT
+      ****         Returned result of the call.
+      ****     FAKER-RESULT-FIELDS
+      ****         Populated for certain compound results - redefined
+      ****         for address and person fields.
+      ****     FAKER-INFO-CNT
+      ****         Debugging information count.
+      ****     FAKER-INFO-OCCS
+      ****         Debugging information.
+
+           05  FAKER-RESPONSE-CODE PIC 9(4). 
+               88  FAKER-RESPONSE-GOOD             VALUE 0.
+               88  FAKER-UNKNOWN-PROVIDER          VALUE 10.
+               88  FAKER-UNKNOWN-FUNCTION          VALUE 20.
+               88  FAKER-UNKNOWN-FORMAT            VALUE 30.
+
+           05  FAKER-RESPONSE-MSG  PIC X(80). 
 
            05  FAKER-RESULT        PIC X(80). 
 

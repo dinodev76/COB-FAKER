@@ -42,9 +42,6 @@
        01  W-FAKPERS-PROG          PIC X(08)       VALUE 'FAKPERS'.
        01  W-FAKRAND-PROG          PIC X(08)       VALUE 'FAKRAND'.
 
-       01  W-ERROR-MSG             PIC X(20)       VALUE
-           '**** FAKCOMP error: '.
-
        01  W-FORMAT-ENTRY          PIC X(04).
            88  W-FORMAT-ENTRY-IS-FORMAT            VALUE '  '.
 
@@ -100,15 +97,13 @@
            MOVE FUNCTION WHEN-COMPILED 
                                    TO W-COMPILED-DATE
 
-           DISPLAY 'FAKCOMP Compiled = '
+           DISPLAY 'FAKCOMP  compiled on '
                W-COMPILED-DATE-YYYY '/'
                W-COMPILED-DATE-MM   '/'
-               W-COMPILED-DATE-DD   ' '
+               W-COMPILED-DATE-DD   ' at '
                W-COMPILED-TIME-HH   ':'
                W-COMPILED-TIME-MM   ':'
                W-COMPILED-TIME-SS
-
-           DISPLAY ' '
 
            PERFORM SUB-1100-SUM-WEIGHTS THRU SUB-1100-EXIT
            .
@@ -146,9 +141,14 @@
                PERFORM SUB-9020-SUFFIX THRU SUB-9020-EXIT
 
              WHEN OTHER
-               DISPLAY W-ERROR-MSG
-                       'Unknown function ignored: '
+               SET  FAKER-UNKNOWN-FUNCTION
+                                   IN L-PARAMETER
+                                   TO TRUE
+               STRING 'Unknown FAKCOMP function "'
                        FAKER-PROVIDER-FUNCTION
+                                   IN L-PARAMETER
+                       '"'  DELIMITED SIZE
+                                 INTO FAKER-RESPONSE-MSG
                                    IN L-PARAMETER
                GO TO SUB-2000-EXIT
            END-EVALUATE
@@ -162,6 +162,11 @@
 
            IF      W-TABLE-1(1:8) = 'FORMATS-'
                PERFORM SUB-2100-FORMAT THRU SUB-2100-EXIT
+
+               IF      NOT FAKER-RESPONSE-GOOD
+                                   IN L-PARAMETER
+                   GO TO SUB-2000-EXIT
+               END-IF
            ELSE
                PERFORM SUB-9800-FIND-RANDOM-COMPANY THRU SUB-9800-EXIT
 
@@ -177,9 +182,17 @@
        SUB-3000-SHUT-DOWN.
       *-------------------
 
-      D    DISPLAY ' '
-
-      D    DISPLAY 'FAKCOMP Successfully Completed'
+      D    IF      FAKER-RESPONSE-GOOD
+      D                            IN L-PARAMETER
+      D        DISPLAY 'FAKCOMP completed successfully'
+      D    ELSE
+      D        DISPLAY 'FAKCOMP ended with error '
+      D                FAKER-RESPONSE-CODE
+      D                            IN L-PARAMETER
+      D                ': '
+      D                FAKER-RESPONSE-MSG
+      D                            IN L-PARAMETER
+      D    END-IF
            .
        SUB-3000-EXIT.
            EXIT.
@@ -196,9 +209,14 @@
 
              WHEN OTHER
                MOVE SPACES         TO W-TABLE-1
-               DISPLAY W-ERROR-MSG
-                       'Unknown format code: '
+               SET  FAKER-UNKNOWN-FORMAT
+                                   IN L-PARAMETER
+                                   TO TRUE
+               STRING 'Unknown FAKCOMP format "'
                        W-FORMAT-ENTRY
+                       '"'  DELIMITED SIZE
+                                 INTO FAKER-RESPONSE-MSG
+                                   IN L-PARAMETER
                GO TO SUB-9000-EXIT
            END-EVALUATE
 

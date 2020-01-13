@@ -43,9 +43,6 @@
        01  W-FAKPERS-PROG          PIC X(08)       VALUE 'FAKPERS'.
        01  W-FAKTXID-PROG          PIC X(08)       VALUE 'FAKTXID'.
 
-       01  W-ERROR-MSG             PIC X(18)       VALUE
-           '**** FAKER error: '.
-
        01  FILLER                  PIC X(01)       VALUE 'Y'.
            88  W-FIRST-CALL                        VALUE 'Y'.
            88  W-NOT-FIRST-CALL                    VALUE 'N'.
@@ -83,7 +80,10 @@
        SUB-1000-START-UP.
       *------------------
 
-           MOVE SPACES             TO FAKER-RESULT
+           SET  FAKER-RESPONSE-GOOD
+                                   TO TRUE
+           MOVE SPACES             TO FAKER-RESPONSE-MSG
+                                      FAKER-RESULT
                                       FAKER-RESULT-FIELDS
            MOVE 0                  TO FAKER-INFO-CNT
            MOVE LOW-VALUES         TO FAKER-INFO-OCCS
@@ -96,15 +96,13 @@
            MOVE FUNCTION WHEN-COMPILED 
                                    TO W-COMPILED-DATE
 
-           DISPLAY 'FAKER Compiled = '
+           DISPLAY 'FAKER    compiled on '
                W-COMPILED-DATE-YYYY '/'
                W-COMPILED-DATE-MM   '/'
-               W-COMPILED-DATE-DD   ' '
+               W-COMPILED-DATE-DD   ' at '
                W-COMPILED-TIME-HH   ':'
                W-COMPILED-TIME-MM   ':'
                W-COMPILED-TIME-SS
-
-           DISPLAY ' '
            .
        SUB-1000-EXIT.
            EXIT.
@@ -130,10 +128,12 @@
                CALL W-FAKTXID-PROG
                                 USING L-PARAMETER
              WHEN OTHER
-               DISPLAY W-ERROR-MSG
-                       'FAKER provider "'
+               SET  FAKER-UNKNOWN-PROVIDER
+                                   TO TRUE
+               STRING 'Unknown FAKER provider "'
                        W-FAKER-PROVIDER
-                       '" not supported'
+                       '"'  DELIMITED SIZE
+                                 INTO FAKER-RESPONSE-MSG
            END-EVALUATE
            .
        SUB-2000-EXIT.
@@ -142,9 +142,14 @@
        SUB-3000-SHUT-DOWN.
       *-------------------
 
-      D    DISPLAY ' '
-
-      D    DISPLAY 'FAKER Successfully Completed'
+      D    IF      FAKER-RESPONSE-GOOD
+      D        DISPLAY 'FAKER completed successfully'
+      D    ELSE
+      D        DISPLAY 'FAKER ended with error '
+      D                FAKER-RESPONSE-CODE
+      D                ': '
+      D                FAKER-RESPONSE-MSG
+      D    END-IF
            .
        SUB-3000-EXIT.
            EXIT.

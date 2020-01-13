@@ -18,6 +18,13 @@
 
            PERFORM SUB-2110-RECURSE-FORMATS THRU SUB-2110-EXIT
                UNTIL W-SUB-1 > LENGTH OF W-RECURSED-FORMAT
+               OR    NOT FAKER-RESPONSE-GOOD
+                                    IN L-PARAMETER
+
+           IF      NOT FAKER-RESPONSE-GOOD
+                                   IN L-PARAMETER
+               GO TO SUB-2100-EXIT
+           END-IF
 
            MOVE SPACES         
              TO FAKER-RESULT       IN L-PARAMETER
@@ -55,6 +62,11 @@
                MOVE W-SUB-1-SAVE   TO W-SUB-1 
 
                PERFORM SUB-9000-EXAMINE-FIND-FORMAT THRU SUB-9000-EXIT
+
+               IF      NOT FAKER-RESPONSE-GOOD
+                                   IN L-PARAMETER
+                   GO TO SUB-2110-EXIT
+               END-IF
     
                STRING W-FAKER-FORMAT
                             DELIMITED '  '
