@@ -27,13 +27,13 @@
     [
         {
             "label": "Compile FAKERGEN Programs",
-            "type": "shell",
-            "command": "C:\\GnuCOBOL\\bin\\cobc",
+            "type": "process",
+            "command": "C:\\GnuCOBOL\\bin\\cobc.exe",
             "args":
             [
                 "-x",
                 "-o",
-                "FAKERGEN.exe",
+                "${workspaceFolder}\\Bin\\FAKERGEN.exe",
                 "FAKERGEN.cob",
                 "FAKER.cob",
                 "FAKADDR.cob",
@@ -58,8 +58,8 @@
         },
         {
             "label": "Compile and Run FAKERGEN",
-            "type": "shell",
-            "command": "${workspaceFolder}\\FAKERGEN.exe",
+            "type": "process",
+            "command": "${workspaceFolder}\\Bin\\FAKERGEN.exe",
             "args": [],
             "dependsOn":
             [
@@ -69,13 +69,13 @@
         },
         {
             "label": "Compile FAKERTST Programs",
-            "type": "shell",
-            "command": "C:\\GnuCOBOL\\bin\\cobc",
+            "type": "process",
+            "command": "C:\\GnuCOBOL\\bin\\cobc.exe",
             "args":
             [
                 "-x",
                 "-o",
-                "FAKERTST.exe",
+                "${workspaceFolder}\\Bin\\FAKERTST.exe",
                 "FAKERTST.cob",
                 "FAKER.cob",
                 "FAKADDR.cob",
@@ -96,8 +96,8 @@
         },
         {
             "label": "Compile and Run FAKERTST",
-            "type": "shell",
-            "command": "${workspaceFolder}\\FAKERTST.exe",
+            "type": "process",
+            "command": "${workspaceFolder}\\Bin\\FAKERTST.exe",
             "args": [],
             "dependsOn":
             [
