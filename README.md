@@ -36,11 +36,12 @@ These instructions will get you a copy of the project up and running on your loc
 4. Download the COB-FAKER project, e.g. to C:\COB-FAKER.  Your folder structure should look something like this:
 
 <pre>
-    COB-FAKER  
-        .vscode  
-        CopyBooks  
+    COB-FAKER
+        .vscode
+        Bin
+        CopyBooks
         Data
-        Listings  
+        Listings
 </pre>
 
 5. Run VS Code and select File/Open Folder..., and open the above COB-FAKER folder to get started.
