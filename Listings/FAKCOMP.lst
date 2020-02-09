@@ -1,0 +1,1416 @@
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0001
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000001        *========================== COB-FAKER ===========================*
+000002        * Authors: Brian D Pead
+000003        *
+000004        * License: MIT
+000005        *
+000006        * Date        Version  Description
+000007        * ----        -------  -----------
+000008        * 2020-02-08  1.0      First release
+000009        *================================================================*
+000010
+000011         IDENTIFICATION DIVISION.
+000012        *========================
+000013
+000014         PROGRAM-ID.             FAKCOMP.
+000015
+000016         ENVIRONMENT DIVISION.
+000017        *=====================
+000018
+000019         CONFIGURATION SECTION.
+000020        *----------------------
+000021
+000022         SOURCE-COMPUTER.
+000023             IBM-Z15.
+000024        *    IBM-Z15 DEBUGGING MODE.
+000025
+000026         INPUT-OUTPUT SECTION.
+000027        *---------------------
+000028
+000029         FILE-CONTROL.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0002
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000030        /
+000031         DATA DIVISION.
+000032        *==============
+000033
+000034         FILE SECTION.
+000035        *-------------
+000036
+000037         WORKING-STORAGE SECTION.
+000038        *------------------------
+000039
+000040         COPY FAKERWS1.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C        01  W-FOUND-DX              PIC S9(4)  COMP.
+000012C        01  W-RANDOM-NO             PIC S9(4)V9(9)
+000013C                                               COMP.
+000014C        01  W-RANDOM-SUB            PIC S9(4)  COMP.
+000015C        01  W-SUB-1                 PIC S9(4)  COMP.
+000016C        01  W-SUB-1-SAVE            PIC S9(4)  COMP.
+000017C        01  W-SUB-2                 PIC S9(4)  COMP.
+000018C        01  W-SUB-D                 PIC S9(4)  COMP.
+000019C        01  W-DIGIT-CNT             PIC S9(4)  COMP.
+000020C        01  W-RANDOM-DIG            PIC 9.
+000021C        01  W-TABLE-1               PIC X(30).
+000022C        01  W-TABLE-2               PIC X(30)       VALUE SPACES.
+000023C        01  W-FAKER-RESULT          PIC X(80).
+000024C        01  W-FAKER-FORMAT          PIC X(80).
+000025C        01  W-FORMAT-START          PIC X           VALUE '{'.
+000026C        01  W-FORMAT-END            PIC X           VALUE '}'.
+000027C
+000028C        01  FILLER                  PIC X(01)       VALUE 'Y'.
+000029C            88  W-FIRST-CALL                        VALUE 'Y'.
+000030C            88  W-NOT-FIRST-CALL                    VALUE 'N'.
+000031C
+000032C        01  W-COMPILED-DATE.
+000033C            05  W-COMPILED-DATE-YYYY
+000034C                                    PIC X(04).
+000035C            05  W-COMPILED-DATE-MM  PIC X(02).
+000036C            05  W-COMPILED-DATE-DD  PIC X(02).
+000037C            05  W-COMPILED-TIME-HH  PIC X(02).
+000038C            05  W-COMPILED-TIME-MM  PIC X(02).
+000039C            05  W-COMPILED-TIME-SS  PIC X(02).
+000040C            05  FILLER              PIC X(07).
+000041C
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0003
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000042C        01  W-RECURSED-FORMAT.
+000043C            05  W-RECURSED-FORMAT-CHAR
+000044C                                    PIC X           OCCURS 80
+000045C                                                    INDEXED W-RF-DX.
+000046C        01  W-RECURSED-FORMAT-REST  PIC X(80).
+000041
+000042         01  W-FAKPERS-PROG          PIC X(08)       VALUE 'FAKPERS'.
+000043         01  W-FAKRAND-PROG          PIC X(08)       VALUE 'FAKRAND'.
+000044
+000045         01  W-FORMAT-ENTRY          PIC X(04).
+000046             88  W-FORMAT-ENTRY-IS-FORMAT            VALUE '  '.
+000047
+000048         01  W-FAKER-PARAMETER.      COPY FAKERLNK
+000049                                REPLACING ==FI-DX== BY ==W-FI-DX==.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C       **** Input fields:
+000012C       ****     FAKER-PROVIDER-FUNCTION:
+000013C       ****         Set appropriate 88 level for  desired function.
+000014C       ****     FAKER-SEED-NO:
+000015C       ****         If > 0, used to set seed to get same random
+000016C       ****         sequence on each call.
+000017C       ****     FAKER-SEED-TEXT:
+000018C       ****         If FAKER-SEED-NO = 0 and this is not spaces, used to
+000019C       ****         set seed to get same random sequence on each call
+000020C       ****         (e.g. to get same fake name each time real name is
+000021C       ****         being anonymized, move real name to FAKER-SEED-TEXT
+000022C       ****         before call).
+000023C
+000024C            05  FAKER-PROVIDER-FUNCTION
+000025C                                    PIC X(30).
+000026C                88  ADDRESS-ADDRESS                 VALUE
+000027C                                    'ADDRESS-ADDRESS'.
+000028C                88  ADDRESS-BUILDING-NO             VALUE
+000029C                                    'ADDRESS-BUILDING-NO'.
+000030C                88  ADDRESS-CITY                    VALUE
+000031C                                    'ADDRESS-CITY'.
+000032C                88  ADDRESS-CITY-PREFIX             VALUE
+000033C                                    'ADDRESS-CITY-PREFIX'.
+000034C                88  ADDRESS-CITY-SUFFIX             VALUE
+000035C                                    'ADDRESS-CITY-SUFFIX'.
+000036C                88  ADDRESS-MILITARY-APO            VALUE
+000037C                                    'ADDRESS-MILITARY-APO'.
+000038C                88  ADDRESS-MILITARY-DPO            VALUE
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0004
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000039C                                    'ADDRESS-MILITARY-DPO'.
+000040C                88  ADDRESS-MILITARY-SHIP-PREFIX    VALUE
+000041C                                    'ADDRESS-MILITARY-SHIP-PREFIX'.
+000042C                88  ADDRESS-MILITARY-STATE-ABBR     VALUE
+000043C                                    'ADDRESS-MILITARY-STATE-ABBR'.
+000044C                88  ADDRESS-POSTCODE                VALUE
+000045C                                    'ADDRESS-POSTCODE'.
+000046C                88  ADDRESS-SECONDARY-ADDRESS       VALUE
+000047C                                    'ADDRESS-SECONDARY-ADDRESS'.
+000048C                88  ADDRESS-STATE                   VALUE
+000049C                                    'ADDRESS-STATE'.
+000050C                88  ADDRESS-STATE-ABBR              VALUE
+000051C                                    'ADDRESS-STATE-ABBR'.
+000052C                88  ADDRESS-STATE-POSTCODE          VALUE
+000053C                                    'ADDRESS-STATE-POSTCODE'.
+000054C                88  ADDRESS-STREET-ADDRESS          VALUE
+000055C                                    'ADDRESS-STREET-ADDRESS'.
+000056C                88  ADDRESS-STREET-NAME             VALUE
+000057C                                    'ADDRESS-STREET-NAME'.
+000058C                88  ADDRESS-STREET-SUFFIX           VALUE
+000059C                                    'ADDRESS-STREET-SUFFIX'.
+000060C                88  ADDRESS-TERRITORY-ABBR          VALUE
+000061C                                    'ADDRESS-TERRITORY-ABBR'.
+000062C                88  COMPANY-COMPANY                 VALUE
+000063C                                    'COMPANY-COMPANY'.
+000064C                88  COMPANY-SUFFIX                  VALUE
+000065C                                    'COMPANY-SUFFIX'.
+000066C                88  PERSON-FIRST-NAME               VALUE
+000067C                                    'PERSON-FIRST-NAME'.
+000068C                88  PERSON-FIRST-NAME-MALE          VALUE
+000069C                                    'PERSON-FIRST-NAME-MALE'.
+000070C                88  PERSON-FIRST-NAME-FEMALE        VALUE
+000071C                                    'PERSON-FIRST-NAME-FEMALE'.
+000072C                88  PERSON-LAST-NAME                VALUE
+000073C                                    'PERSON-LAST-NAME'.
+000074C                88  PERSON-LAST-NAME-MALE           VALUE
+000075C                                    'PERSON-LAST-NAME-MALE'.
+000076C                88  PERSON-LAST-NAME-FEMALE         VALUE
+000077C                                    'PERSON-LAST-NAME-FEMALE'.
+000078C                88  PERSON-NAME                     VALUE
+000079C                                    'PERSON-NAME'.
+000080C                88  PERSON-NAME-MALE                VALUE
+000081C                                    'PERSON-NAME-MALE'.
+000082C                88  PERSON-NAME-FEMALE              VALUE
+000083C                                    'PERSON-NAME-FEMALE'.
+000084C                88  PERSON-PREFIX                   VALUE
+000085C                                    'PERSON-PREFIX'.
+000086C                88  PERSON-PREFIX-MALE              VALUE
+000087C                                    'PERSON-PREFIX-MALE'.
+000088C                88  PERSON-PREFIX-FEMALE            VALUE
+000089C                                    'PERSON-PREFIX-FEMALE'.
+000090C                88  PERSON-SUFFIX                   VALUE
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0005
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000091C                                    'PERSON-SUFFIX'.
+000092C                88  PERSON-SUFFIX-MALE              VALUE
+000093C                                    'PERSON-SUFFIX-MALE'.
+000094C                88  PERSON-SUFFIX-FEMALE            VALUE
+000095C                                    'PERSON-SUFFIX-FEMALE'.
+000096C                88  TAXID-EIN                       VALUE
+000097C                                    'TAXID-EIN'.
+000098C                88  TAXID-EIN-HYPHEN                VALUE
+000099C                                    'TAXID-EIN-HYPHEN'.
+000100C                88  TAXID-ITIN                      VALUE
+000101C                                    'TAXID-ITIN'.
+000102C                88  TAXID-ITIN-HYPHEN               VALUE
+000103C                                    'TAXID-ITIN-HYPHEN'.
+000104C                88  TAXID-SSN                       VALUE
+000105C                                    'TAXID-SSN'.
+000106C                88  TAXID-SSN-HYPHEN                VALUE
+000107C                                    'TAXID-SSN-HYPHEN'.
+000108C
+000109C            05  FAKER-SEED-NO       PIC 9(9)   COMP VALUE 0.
+000110C
+000111C            05  FAKER-SEED-TEXT     PIC X(80)       VALUE SPACES.
+000112C
+000113C       **** Output fields:
+000114C       ****     FAKER-RESPONSE-CODE
+000115C       ****         Use 88 levels to determine result of calls.
+000116C       ****     FAKER-RESPONSE-MSG
+000117C       ****         Non-space if bad response.
+000118C       ****     FAKER-RESULT
+000119C       ****         Returned result of the call.
+000120C       ****     FAKER-RESULT-FIELDS
+000121C       ****         Populated for certain compound results - redefined
+000122C       ****         for address and person fields.
+000123C       ****     FAKER-INFO-CNT
+000124C       ****         Debugging information count.
+000125C       ****     FAKER-INFO-OCCS
+000126C       ****         Debugging information.
+000127C
+000128C            05  FAKER-RESPONSE-CODE PIC 9(4).
+000129C                88  FAKER-RESPONSE-GOOD             VALUE 0.
+000130C                88  FAKER-UNKNOWN-PROVIDER          VALUE 10.
+000131C                88  FAKER-UNKNOWN-FUNCTION          VALUE 20.
+000132C                88  FAKER-UNKNOWN-FORMAT            VALUE 30.
+000133C
+000134C            05  FAKER-RESPONSE-MSG  PIC X(80).
+000135C
+000136C            05  FAKER-RESULT        PIC X(80).
+000137C
+000138C            05  FAKER-RESULT-FIELDS PIC X(80).
+000139C
+000140C       **** These fields are populated only for ADDRESS-ADDRESS calls:
+000141C            05  FAKER-ADDRESS REDEFINES FAKER-RESULT-FIELDS.
+000142C                10  FAKER-ADDRESS-STREET
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0006
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000143C                                    PIC X(35).
+000144C                10  FAKER-ADDRESS-CITY
+000145C                                    PIC X(25).
+000146C                10  FAKER-ADDRESS-STATE
+000147C                                    PIC X(10).
+000148C                10  FAKER-ADDRESS-POSTCODE
+000149C                                    PIC X(10).
+000150C
+000151C       **** These fields are populated only for PERSON-NAME,
+000152C       **** PERSON-NAME-MALE and PERSON-NAME-FEMALE calls:
+000153C            05  FAKER-PERSON REDEFINES FAKER-RESULT-FIELDS.
+000154C                10  FAKER-PERSON-PREFIX
+000155C                                    PIC X(10).
+000156C                10  FAKER-PERSON-FIRST-NAME
+000157C                                    PIC X(25).
+000158C                10  FAKER-PERSON-LAST-NAME
+000159C                                    PIC X(35).
+000160C                10  FAKER-PERSON-SUFFIX
+000161C                                    PIC X(10).
+000162C
+000163C            05  FAKER-INFO-CNT      PIC S9(4)  COMP.
+000164C
+000165C            05  FAKER-INFO-OCCS.
+000166C                10  FAKER-INFO                      OCCURS 20
+000167C            INDEXED W-FI-DX
+000168C                                                            FI-DX2.
+000169C                    15  FAKER-TABLE PIC X(30).
+000170C                    15  FAKER-RANDOM-NO-SUB
+000171C                                    PIC S9(4)V9(9)
+000172C                                               COMP.
+000173C                    15  FAKER-TABLE-ENTRY
+000174C                                    PIC S9(4)  COMP.
+000175C
+000050
+000051         01  W-FAKRAND-PARAMETER.    COPY FAKRANDL.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C            05  FAKRAND-SEED-NO     PIC 9(09)  COMP VALUE 0.
+000012C
+000013C            05  FAKRAND-SEED-TEXT   PIC X(80)       VALUE SPACES.
+000014C
+000015C            05  FAKRAND-RANDOM-NO   PIC V9(09) COMP.
+000052
+000053         COPY FAKCOMPW.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0007
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C       **** FORMAT CODES:
+000012C       ****     CS = company_suffix
+000013C       ****     LN = last_name (from FAKPERSW)
+000014C
+000015C        01  FORMATS-COMPANY.
+000016C            05  FORMAT-COMPANY-CNT  PIC S9(4)  COMP VALUE 3.
+000017C            05  FORMAT-COMPANY-WEIGHT-TOT
+000018C                                    PIC S99V9(9)
+000019C                                               COMP VALUE 0.
+000020C            05  FORMAT-COMPANY-OCCS.
+000021C                10  FILLER          PIC X(32)       VALUE '{LN} {CS}'.
+000022C                10  FILLER          PIC SV9(9) COMP VALUE  0.500000000.
+000023C                10  FILLER          PIC X(32)       VALUE
+000024C                                                        '{LN}-{LN} {CS}'.
+000025C                10  FILLER          PIC SV9(9) COMP VALUE  0.250000000.
+000026C                10  FILLER          PIC X(32)       VALUE
+000027C                                               '{LN}, {LN} and {LN} LLC'.
+000028C                10  FILLER          PIC SV9(9) COMP VALUE  0.250000000.
+000029C            05  FILLER REDEFINES FORMAT-COMPANY-OCCS.
+000030C                10  FILLER                          OCCURS 3
+000031C                                                    INDEXED FC-DX.
+000032C                    15  FORMAT-COMPANY
+000033C                                    PIC X(32).
+000034C                    15  FORMAT-COMPANY-WEIGHT
+000035C                                    PIC SV9(9) COMP.
+000036C
+000037C        01  COMPANY-SUFFIXES.
+000038C            05  COMPANY-SUFFIX-CNT  PIC S9(4)       COMP VALUE 6.
+000039C            05  COMPANY-SUFFIX-OCCS.
+000040C                10  FILLER          PIC X(14)       VALUE 'Inc'.
+000041C                10  FILLER          PIC X(14)       VALUE 'and Sons'.
+000042C                10  FILLER          PIC X(14)       VALUE 'LLC'.
+000043C                10  FILLER          PIC X(14)       VALUE 'Group'.
+000044C                10  FILLER          PIC X(14)       VALUE 'PLC'.
+000045C                10  FILLER          PIC X(14)       VALUE 'Ltd'.
+000046C            05  FILLER REDEFINES COMPANY-SUFFIX-OCCS.
+000047C                10  FILLER                          OCCURS 6
+000048C                                                    INDEXED CS-DX.
+000049C                    15  COMPANY-SUFFIX PIC X(14).
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0008
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000054        /
+000055         LINKAGE SECTION.
+000056        *----------------
+000057
+000058         01  L-PARAMETER.            COPY FAKERLNK.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C       **** Input fields:
+000012C       ****     FAKER-PROVIDER-FUNCTION:
+000013C       ****         Set appropriate 88 level for  desired function.
+000014C       ****     FAKER-SEED-NO:
+000015C       ****         If > 0, used to set seed to get same random
+000016C       ****         sequence on each call.
+000017C       ****     FAKER-SEED-TEXT:
+000018C       ****         If FAKER-SEED-NO = 0 and this is not spaces, used to
+000019C       ****         set seed to get same random sequence on each call
+000020C       ****         (e.g. to get same fake name each time real name is
+000021C       ****         being anonymized, move real name to FAKER-SEED-TEXT
+000022C       ****         before call).
+000023C
+000024C            05  FAKER-PROVIDER-FUNCTION
+000025C                                    PIC X(30).
+000026C                88  ADDRESS-ADDRESS                 VALUE
+000027C                                    'ADDRESS-ADDRESS'.
+000028C                88  ADDRESS-BUILDING-NO             VALUE
+000029C                                    'ADDRESS-BUILDING-NO'.
+000030C                88  ADDRESS-CITY                    VALUE
+000031C                                    'ADDRESS-CITY'.
+000032C                88  ADDRESS-CITY-PREFIX             VALUE
+000033C                                    'ADDRESS-CITY-PREFIX'.
+000034C                88  ADDRESS-CITY-SUFFIX             VALUE
+000035C                                    'ADDRESS-CITY-SUFFIX'.
+000036C                88  ADDRESS-MILITARY-APO            VALUE
+000037C                                    'ADDRESS-MILITARY-APO'.
+000038C                88  ADDRESS-MILITARY-DPO            VALUE
+000039C                                    'ADDRESS-MILITARY-DPO'.
+000040C                88  ADDRESS-MILITARY-SHIP-PREFIX    VALUE
+000041C                                    'ADDRESS-MILITARY-SHIP-PREFIX'.
+000042C                88  ADDRESS-MILITARY-STATE-ABBR     VALUE
+000043C                                    'ADDRESS-MILITARY-STATE-ABBR'.
+000044C                88  ADDRESS-POSTCODE                VALUE
+000045C                                    'ADDRESS-POSTCODE'.
+000046C                88  ADDRESS-SECONDARY-ADDRESS       VALUE
+000047C                                    'ADDRESS-SECONDARY-ADDRESS'.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0009
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000048C                88  ADDRESS-STATE                   VALUE
+000049C                                    'ADDRESS-STATE'.
+000050C                88  ADDRESS-STATE-ABBR              VALUE
+000051C                                    'ADDRESS-STATE-ABBR'.
+000052C                88  ADDRESS-STATE-POSTCODE          VALUE
+000053C                                    'ADDRESS-STATE-POSTCODE'.
+000054C                88  ADDRESS-STREET-ADDRESS          VALUE
+000055C                                    'ADDRESS-STREET-ADDRESS'.
+000056C                88  ADDRESS-STREET-NAME             VALUE
+000057C                                    'ADDRESS-STREET-NAME'.
+000058C                88  ADDRESS-STREET-SUFFIX           VALUE
+000059C                                    'ADDRESS-STREET-SUFFIX'.
+000060C                88  ADDRESS-TERRITORY-ABBR          VALUE
+000061C                                    'ADDRESS-TERRITORY-ABBR'.
+000062C                88  COMPANY-COMPANY                 VALUE
+000063C                                    'COMPANY-COMPANY'.
+000064C                88  COMPANY-SUFFIX                  VALUE
+000065C                                    'COMPANY-SUFFIX'.
+000066C                88  PERSON-FIRST-NAME               VALUE
+000067C                                    'PERSON-FIRST-NAME'.
+000068C                88  PERSON-FIRST-NAME-MALE          VALUE
+000069C                                    'PERSON-FIRST-NAME-MALE'.
+000070C                88  PERSON-FIRST-NAME-FEMALE        VALUE
+000071C                                    'PERSON-FIRST-NAME-FEMALE'.
+000072C                88  PERSON-LAST-NAME                VALUE
+000073C                                    'PERSON-LAST-NAME'.
+000074C                88  PERSON-LAST-NAME-MALE           VALUE
+000075C                                    'PERSON-LAST-NAME-MALE'.
+000076C                88  PERSON-LAST-NAME-FEMALE         VALUE
+000077C                                    'PERSON-LAST-NAME-FEMALE'.
+000078C                88  PERSON-NAME                     VALUE
+000079C                                    'PERSON-NAME'.
+000080C                88  PERSON-NAME-MALE                VALUE
+000081C                                    'PERSON-NAME-MALE'.
+000082C                88  PERSON-NAME-FEMALE              VALUE
+000083C                                    'PERSON-NAME-FEMALE'.
+000084C                88  PERSON-PREFIX                   VALUE
+000085C                                    'PERSON-PREFIX'.
+000086C                88  PERSON-PREFIX-MALE              VALUE
+000087C                                    'PERSON-PREFIX-MALE'.
+000088C                88  PERSON-PREFIX-FEMALE            VALUE
+000089C                                    'PERSON-PREFIX-FEMALE'.
+000090C                88  PERSON-SUFFIX                   VALUE
+000091C                                    'PERSON-SUFFIX'.
+000092C                88  PERSON-SUFFIX-MALE              VALUE
+000093C                                    'PERSON-SUFFIX-MALE'.
+000094C                88  PERSON-SUFFIX-FEMALE            VALUE
+000095C                                    'PERSON-SUFFIX-FEMALE'.
+000096C                88  TAXID-EIN                       VALUE
+000097C                                    'TAXID-EIN'.
+000098C                88  TAXID-EIN-HYPHEN                VALUE
+000099C                                    'TAXID-EIN-HYPHEN'.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0010
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000100C                88  TAXID-ITIN                      VALUE
+000101C                                    'TAXID-ITIN'.
+000102C                88  TAXID-ITIN-HYPHEN               VALUE
+000103C                                    'TAXID-ITIN-HYPHEN'.
+000104C                88  TAXID-SSN                       VALUE
+000105C                                    'TAXID-SSN'.
+000106C                88  TAXID-SSN-HYPHEN                VALUE
+000107C                                    'TAXID-SSN-HYPHEN'.
+000108C
+000109C            05  FAKER-SEED-NO       PIC 9(9)   COMP VALUE 0.
+000110C
+000111C            05  FAKER-SEED-TEXT     PIC X(80)       VALUE SPACES.
+000112C
+000113C       **** Output fields:
+000114C       ****     FAKER-RESPONSE-CODE
+000115C       ****         Use 88 levels to determine result of calls.
+000116C       ****     FAKER-RESPONSE-MSG
+000117C       ****         Non-space if bad response.
+000118C       ****     FAKER-RESULT
+000119C       ****         Returned result of the call.
+000120C       ****     FAKER-RESULT-FIELDS
+000121C       ****         Populated for certain compound results - redefined
+000122C       ****         for address and person fields.
+000123C       ****     FAKER-INFO-CNT
+000124C       ****         Debugging information count.
+000125C       ****     FAKER-INFO-OCCS
+000126C       ****         Debugging information.
+000127C
+000128C            05  FAKER-RESPONSE-CODE PIC 9(4).
+000129C                88  FAKER-RESPONSE-GOOD             VALUE 0.
+000130C                88  FAKER-UNKNOWN-PROVIDER          VALUE 10.
+000131C                88  FAKER-UNKNOWN-FUNCTION          VALUE 20.
+000132C                88  FAKER-UNKNOWN-FORMAT            VALUE 30.
+000133C
+000134C            05  FAKER-RESPONSE-MSG  PIC X(80).
+000135C
+000136C            05  FAKER-RESULT        PIC X(80).
+000137C
+000138C            05  FAKER-RESULT-FIELDS PIC X(80).
+000139C
+000140C       **** These fields are populated only for ADDRESS-ADDRESS calls:
+000141C            05  FAKER-ADDRESS REDEFINES FAKER-RESULT-FIELDS.
+000142C                10  FAKER-ADDRESS-STREET
+000143C                                    PIC X(35).
+000144C                10  FAKER-ADDRESS-CITY
+000145C                                    PIC X(25).
+000146C                10  FAKER-ADDRESS-STATE
+000147C                                    PIC X(10).
+000148C                10  FAKER-ADDRESS-POSTCODE
+000149C                                    PIC X(10).
+000150C
+000151C       **** These fields are populated only for PERSON-NAME,
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0011
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000152C       **** PERSON-NAME-MALE and PERSON-NAME-FEMALE calls:
+000153C            05  FAKER-PERSON REDEFINES FAKER-RESULT-FIELDS.
+000154C                10  FAKER-PERSON-PREFIX
+000155C                                    PIC X(10).
+000156C                10  FAKER-PERSON-FIRST-NAME
+000157C                                    PIC X(25).
+000158C                10  FAKER-PERSON-LAST-NAME
+000159C                                    PIC X(35).
+000160C                10  FAKER-PERSON-SUFFIX
+000161C                                    PIC X(10).
+000162C
+000163C            05  FAKER-INFO-CNT      PIC S9(4)  COMP.
+000164C
+000165C            05  FAKER-INFO-OCCS.
+000166C                10  FAKER-INFO                      OCCURS 20
+000167C                                                    INDEXED FI-DX
+000168C                                                            FI-DX2.
+000169C                    15  FAKER-TABLE PIC X(30).
+000170C                    15  FAKER-RANDOM-NO-SUB
+000171C                                    PIC S9(4)V9(9)
+000172C                                               COMP.
+000173C                    15  FAKER-TABLE-ENTRY
+000174C                                    PIC S9(4)  COMP.
+000175C
+000059
+000060         COPY FAKERLS1.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C        01  L-FORMAT-TABLE-1.
+000012C            05  L-FORMAT-ENTRY-CNT-1
+000013C                                    PIC S9(4)  COMP.
+000014C            05  L-FORMAT-WEIGHT-TOT-1
+000015C                                    PIC S99V9(9)
+000016C                                               COMP.
+000017C            05  L-FORMAT-OCCS-1.
+000018C                10  FILLER                          OCCURS 10
+000019C                                                    INDEXED L-F-DX-1.
+000020C                    15  L-FORMAT-ENTRY-1
+000021C                                    PIC X(32).
+000022C                    15  L-FORMAT-WEIGHT-1
+000023C                                    PIC SV9(9) COMP.
+000024C
+000025C        01  L-FORMAT-TABLE-2.
+000026C            05  L-FORMAT-ENTRY-CNT-2
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0012
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000027C                                    PIC S9(4)  COMP.
+000028C            05  L-FORMAT-WEIGHT-TOT-2
+000029C                                    PIC S99V9(9)
+000030C                                               COMP.
+000031C            05  L-FORMAT-OCCS-2.
+000032C                10  FILLER                          OCCURS 10
+000033C                                                    INDEXED L-F-DX-2.
+000034C                    15  L-FORMAT-ENTRY-2
+000035C                                    PIC X(32).
+000036C                    15  L-FORMAT-WEIGHT-2
+000037C                                    PIC SV9(9) COMP.
+000061
+000062         01  L-COMPANY-TABLE-1.
+000063             05  L-COMPANY-ENTRY-CNT-1
+000064                                     PIC S9(4)  COMP.
+000065             05  L-COMPANY-OCCS-1.
+000066                 10  FILLER                          OCCURS 1000
+000067                                                     INDEXED L-A-DX-1.
+000068                     15  L-COMPANY-ENTRY-1
+000069                                     PIC X(14).
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0013
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000070        /
+000071         PROCEDURE DIVISION USING L-PARAMETER.
+000072        *==================
+000073
+000074         MAIN.
+000075        *-----
+000076
+000077             PERFORM SUB-1000-START-UP THRU SUB-1000-EXIT
+000078
+000079             PERFORM SUB-2000-PROCESS THRU SUB-2000-EXIT
+000080
+000081             PERFORM SUB-3000-SHUT-DOWN THRU SUB-3000-EXIT
+000082             .
+000083         MAIN-EXIT.
+000084             GOBACK.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0014
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000085        /
+000086         SUB-1000-START-UP.
+000087        *------------------
+000088
+000089             IF      W-NOT-FIRST-CALL
+000090                 GO TO SUB-1000-EXIT
+000091             END-IF
+000092
+000093             SET W-NOT-FIRST-CALL    TO TRUE
+000094             MOVE FUNCTION WHEN-COMPILED
+000095                                     TO W-COMPILED-DATE
+000096
+000097             DISPLAY 'FAKCOMP  compiled on '
+000098                 W-COMPILED-DATE-YYYY '/'
+000099                 W-COMPILED-DATE-MM   '/'
+000100                 W-COMPILED-DATE-DD   ' at '
+000101                 W-COMPILED-TIME-HH   ':'
+000102                 W-COMPILED-TIME-MM   ':'
+000103                 W-COMPILED-TIME-SS
+000104
+000105             PERFORM SUB-1100-SUM-WEIGHTS THRU SUB-1100-EXIT
+000106             .
+000107         SUB-1000-EXIT.
+000108             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0015
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000109        /
+000110         SUB-1100-SUM-WEIGHTS.
+000111        *---------------------
+000112
+000113             PERFORM VARYING FC-DX FROM 1 BY 1
+000114                       UNTIL FC-DX > FORMAT-COMPANY-CNT
+000115                 ADD  FORMAT-COMPANY-WEIGHT(FC-DX)
+000116                   TO FORMAT-COMPANY-WEIGHT-TOT
+000117             END-PERFORM
+000118
+000119        D    DISPLAY 'FAKCOMP weight totals: '
+000120        D    DISPLAY '    ' FORMAT-COMPANY-WEIGHT-TOT
+000121             .
+000122         SUB-1100-EXIT.
+000123             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0016
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000124        /
+000125         SUB-2000-PROCESS.
+000126        *-----------------
+000127
+000128             MOVE 0
+000129               TO FAKER-INFO-CNT     IN L-PARAMETER
+000130             MOVE LOW-VALUES
+000131               TO FAKER-INFO-OCCS    IN L-PARAMETER
+000132
+000133             EVALUATE TRUE
+000134               WHEN COMPANY-COMPANY  IN L-PARAMETER
+000135                 PERFORM SUB-9010-COMPANY THRU SUB-9010-EXIT
+000136
+000137               WHEN COMPANY-SUFFIX   IN L-PARAMETER
+000138                 PERFORM SUB-9020-SUFFIX THRU SUB-9020-EXIT
+000139
+000140               WHEN OTHER
+000141                 SET  FAKER-UNKNOWN-FUNCTION
+000142                                     IN L-PARAMETER
+000143                                     TO TRUE
+000144                 STRING 'Unknown FAKCOMP function "'
+000145                         FAKER-PROVIDER-FUNCTION
+000146                                     IN L-PARAMETER
+000147                         '"'  DELIMITED SIZE
+000148                                   INTO FAKER-RESPONSE-MSG
+000149                                     IN L-PARAMETER
+000150                 GO TO SUB-2000-EXIT
+000151             END-EVALUATE
+000152
+000153             ADD  1
+000154               TO FAKER-INFO-CNT     IN L-PARAMETER
+000155             SET  FI-DX
+000156               TO FAKER-INFO-CNT     IN L-PARAMETER
+000157             MOVE W-TABLE-1
+000158               TO FAKER-TABLE        IN L-PARAMETER(FI-DX)
+000159
+000160             IF      W-TABLE-1(1:8) = 'FORMATS-'
+000161                 PERFORM SUB-2100-FORMAT THRU SUB-2100-EXIT
+000162
+000163                 IF      NOT FAKER-RESPONSE-GOOD
+000164                                     IN L-PARAMETER
+000165                     GO TO SUB-2000-EXIT
+000166                 END-IF
+000167             ELSE
+000168                 PERFORM SUB-9800-FIND-RANDOM-COMPANY THRU SUB-9800-EXIT
+000169
+000170                 MOVE W-FAKER-RESULT
+000171                   TO FAKER-RESULT   IN L-PARAMETER
+000172             END-IF
+000173             .
+000174         SUB-2000-EXIT.
+000175             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0017
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000176        /
+000177         COPY FAKERPD1.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C        SUB-2100-FORMAT.
+000012C       *----------------
+000013C
+000014C            PERFORM SUB-9700-FIND-RANDOM-FORMAT THRU SUB-9700-EXIT
+000015C
+000016C            MOVE W-FAKER-FORMAT     TO W-RECURSED-FORMAT
+000017C            MOVE 1                  TO W-SUB-1
+000018C
+000019C            PERFORM SUB-2110-RECURSE-FORMATS THRU SUB-2110-EXIT
+000020C                UNTIL W-SUB-1 > LENGTH OF W-RECURSED-FORMAT
+000021C                OR    NOT FAKER-RESPONSE-GOOD
+000022C                                     IN L-PARAMETER
+000023C
+000024C            IF      NOT FAKER-RESPONSE-GOOD
+000025C                                    IN L-PARAMETER
+000026C                GO TO SUB-2100-EXIT
+000027C            END-IF
+000028C
+000029C            MOVE SPACES
+000030C              TO FAKER-RESULT       IN L-PARAMETER
+000031C            MOVE 1                  TO W-SUB-1
+000032C                                       W-SUB-2
+000033C
+000034C            PERFORM SUB-2120-PROCESS-FORMATS THRU SUB-2120-EXIT
+000035C                UNTIL W-SUB-1 > LENGTH OF W-RECURSED-FORMAT
+000036C                OR    W-SUB-2 > LENGTH OF FAKER-RESULT
+000037C                                           IN L-PARAMETER
+000038C                OR    W-RECURSED-FORMAT(W-SUB-1 : ) = SPACES
+000039C            .
+000040C        SUB-2100-EXIT.
+000041C            EXIT.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0018
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000042C       /
+000043C        SUB-2110-RECURSE-FORMATS.
+000044C       *-------------------------
+000045C
+000046C            IF      W-RECURSED-FORMAT-CHAR(W-SUB-1) NOT = W-FORMAT-START
+000047C                ADD  1              TO W-SUB-1
+000048C                GO TO SUB-2110-EXIT
+000049C            END-IF
+000050C
+000051C            MOVE W-SUB-1            TO W-SUB-1-SAVE
+000052C            ADD  1                  TO W-SUB-1
+000053C
+000054C            UNSTRING W-RECURSED-FORMAT
+000055C                             DELIMITED W-FORMAT-END
+000056C                                  INTO W-FORMAT-ENTRY
+000057C                               POINTER W-SUB-1
+000058C
+000059C            IF      W-FORMAT-ENTRY-IS-FORMAT
+000060C                MOVE W-RECURSED-FORMAT(W-SUB-1 : )
+000061C                                    TO W-RECURSED-FORMAT-REST
+000062C                MOVE W-SUB-1-SAVE   TO W-SUB-1
+000063C
+000064C                PERFORM SUB-9000-EXAMINE-FIND-FORMAT THRU SUB-9000-EXIT
+000065C
+000066C                IF      NOT FAKER-RESPONSE-GOOD
+000067C                                    IN L-PARAMETER
+000068C                    GO TO SUB-2110-EXIT
+000069C                END-IF
+000070C
+000071C                STRING W-FAKER-FORMAT
+000072C                             DELIMITED '  '
+000073C                                  INTO W-RECURSED-FORMAT
+000074C                               POINTER W-SUB-1-SAVE
+000075C
+000076C                MOVE W-RECURSED-FORMAT-REST
+000077C                                    TO W-RECURSED-FORMAT(W-SUB-1-SAVE : )
+000078C            END-IF
+000079C            .
+000080C        SUB-2110-EXIT.
+000081C            EXIT.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0019
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000082C       /
+000083C        SUB-2120-PROCESS-FORMATS.
+000084C       *-------------------------
+000085C
+000086C            IF      W-RECURSED-FORMAT-CHAR(W-SUB-1) = W-FORMAT-START
+000087C                ADD  1              TO W-SUB-1
+000088C
+000089C                UNSTRING W-RECURSED-FORMAT
+000090C                             DELIMITED W-FORMAT-END
+000091C                                  INTO W-FORMAT-ENTRY
+000092C                               POINTER W-SUB-1
+000093C
+000094C                PERFORM SUB-9000-EXAMINE-FIND-FORMAT THRU SUB-9000-EXIT
+000095C
+000096C                STRING W-FAKER-RESULT
+000097C                             DELIMITED '  '
+000098C                                  INTO FAKER-RESULT
+000099C                                       IN L-PARAMETER
+000100C                               POINTER W-SUB-2
+000101C            ELSE
+000102C                MOVE W-RECURSED-FORMAT-CHAR(W-SUB-1)
+000103C                  TO FAKER-RESULT   IN L-PARAMETER(W-SUB-2 : 1)
+000104C                ADD  1              TO W-SUB-1
+000105C                                       W-SUB-2
+000106C            END-IF
+000107C            .
+000108C        SUB-2120-EXIT.
+000109C            EXIT.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0020
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000178        /
+000179         SUB-3000-SHUT-DOWN.
+warning: ignoring redundant .
+000180        *-------------------
+000181
+000182        D    IF      FAKER-RESPONSE-GOOD
+000183        D                            IN L-PARAMETER
+000184        D        DISPLAY 'FAKCOMP completed successfully'
+000185        D    ELSE
+000186        D        DISPLAY 'FAKCOMP ended with error '
+000187        D                FAKER-RESPONSE-CODE
+000188        D                            IN L-PARAMETER
+000189        D                ': '
+000190        D                FAKER-RESPONSE-MSG
+000191        D                            IN L-PARAMETER
+000192        D    END-IF
+000193             .
+000194         SUB-3000-EXIT.
+000195             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0021
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000196        /
+000197         SUB-9000-EXAMINE-FIND-FORMAT.
+000198        *-----------------------------
+000199
+000200             EVALUATE W-FORMAT-ENTRY
+000201               WHEN 'CS'
+000202                 PERFORM SUB-9020-SUFFIX THRU SUB-9020-EXIT
+000203
+000204               WHEN 'LN'
+000205                 PERFORM SUB-9200-LAST-NAME THRU SUB-9200-EXIT
+000206
+000207               WHEN OTHER
+000208                 MOVE SPACES         TO W-TABLE-1
+000209                 SET  FAKER-UNKNOWN-FORMAT
+000210                                     IN L-PARAMETER
+000211                                     TO TRUE
+000212                 STRING 'Unknown FAKCOMP format "'
+000213                         W-FORMAT-ENTRY
+000214                         '"'  DELIMITED SIZE
+000215                                   INTO FAKER-RESPONSE-MSG
+000216                                     IN L-PARAMETER
+000217                 GO TO SUB-9000-EXIT
+000218             END-EVALUATE
+000219
+000220             ADD  1
+000221               TO FAKER-INFO-CNT     IN L-PARAMETER
+000222             SET  FI-DX
+000223               TO FAKER-INFO-CNT     IN L-PARAMETER
+000224             MOVE W-TABLE-1
+000225               TO FAKER-TABLE        IN L-PARAMETER(FI-DX)
+000226
+000227             EVALUATE TRUE
+000228               WHEN W-TABLE-1(1:8) = 'FORMATS-'
+000229                 PERFORM SUB-9700-FIND-RANDOM-FORMAT THRU SUB-9700-EXIT
+000230
+000231               WHEN W-TABLE-1 = 'FIRST-NAME'
+000232               OR               'LAST-NAME'
+000233                 MOVE FAKER-RESULT   IN W-FAKER-PARAMETER
+000234                   TO W-FAKER-RESULT
+000235
+000236               WHEN OTHER
+000237                 PERFORM SUB-9800-FIND-RANDOM-COMPANY THRU SUB-9800-EXIT
+000238             END-EVALUATE
+000239             .
+000240         SUB-9000-EXIT.
+000241             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0022
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000242        /
+000243         SUB-9010-COMPANY.
+000244        *-----------------
+000245
+000246             MOVE 'FORMATS-COMPANY'  TO W-TABLE-1
+000247
+000248             SET  ADDRESS OF L-FORMAT-TABLE-1
+000249               TO ADDRESS OF FORMATS-COMPANY
+000250             .
+000251         SUB-9010-EXIT.
+000252             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0023
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000253        /
+000254         SUB-9020-SUFFIX.
+000255        *----------------
+000256
+000257             MOVE 'COMPANY-SUFFIXES' TO W-TABLE-1
+000258
+000259             SET  ADDRESS OF L-COMPANY-TABLE-1
+000260               TO ADDRESS OF COMPANY-SUFFIXES
+000261             .
+000262         SUB-9020-EXIT.
+000263             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0024
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000264        /
+000265         SUB-9200-LAST-NAME.
+000266        *-------------------
+000267
+000268             MOVE 'LAST-NAME'        TO W-TABLE-1
+000269             SET  PERSON-LAST-NAME   IN W-FAKER-PARAMETER
+000270               TO TRUE
+000271
+000272             CALL W-FAKPERS-PROG  USING W-FAKER-PARAMETER
+000273             .
+000274         SUB-9200-EXIT.
+000275             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0025
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000276        /
+000277         COPY FAKERPD2.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C        SUB-9700-FIND-RANDOM-FORMAT.
+000012C       *----------------------------
+000013C
+000014C            PERFORM SUB-9901-CALL-FAKRAND
+000015C
+000016C            IF      W-TABLE-2 = SPACES
+000017C                COMPUTE W-RANDOM-NO =  FAKRAND-RANDOM-NO
+000018C                                       * L-FORMAT-WEIGHT-TOT-1
+000019C            ELSE
+000020C                COMPUTE W-RANDOM-NO =  FAKRAND-RANDOM-NO
+000021C                                       * (L-FORMAT-WEIGHT-TOT-1 +
+000022C                                          L-FORMAT-WEIGHT-TOT-2)
+000023C            END-IF
+000024C
+000025C            MOVE W-RANDOM-NO        TO FAKER-RANDOM-NO-SUB
+000026C                                         IN L-PARAMETER(FI-DX)
+000027C            MOVE 0                  TO W-FOUND-DX
+000028C
+000029C            PERFORM SUB-9710-FIND-FORMAT THRU SUB-9710-EXIT
+000030C                VARYING L-F-DX-1 FROM 1 BY 1
+000031C                  UNTIL W-FOUND-DX > 0
+000032C                  OR    L-F-DX-1 > L-FORMAT-ENTRY-CNT-1
+000033C
+000034C            EVALUATE TRUE
+000035C              WHEN W-FOUND-DX > 0
+000036C                MOVE L-FORMAT-ENTRY-1(W-FOUND-DX)
+000037C                                    TO W-FAKER-FORMAT
+000038C
+000039C              WHEN W-TABLE-2 NOT = SPACES
+000040C                ADD  1
+000041C                  TO FAKER-INFO-CNT IN L-PARAMETER
+000042C                SET  FI-DX
+000043C                  TO FAKER-INFO-CNT IN L-PARAMETER
+000044C                MOVE W-TABLE-2
+000045C                  TO FAKER-TABLE    IN L-PARAMETER(FI-DX)
+000046C                MOVE W-RANDOM-NO
+000047C                  TO FAKER-RANDOM-NO-SUB
+000048C                                    IN L-PARAMETER(FI-DX)
+000049C
+000050C                MOVE 0              TO W-FOUND-DX
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0026
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000051C
+000052C                PERFORM SUB-9720-FIND-FORMAT THRU SUB-9720-EXIT
+000053C                    VARYING L-F-DX-2 FROM 1 BY 1
+000054C                      UNTIL W-FOUND-DX > 0
+000055C                      OR    L-F-DX-2 > L-FORMAT-ENTRY-CNT-2
+000056C
+000057C                IF      W-FOUND-DX > 0
+000058C                    MOVE L-FORMAT-ENTRY-2(W-FOUND-DX)
+000059C                                    TO W-FAKER-FORMAT
+000060C                ELSE
+000061C                    MOVE 'Random format not found'
+000062C                                    TO W-FAKER-FORMAT
+000063C                END-IF
+000064C
+000065C              WHEN OTHER
+000066C                MOVE 'Random format not found'
+000067C                                    TO W-FAKER-FORMAT
+000068C            END-EVALUATE
+000069C            .
+000070C        SUB-9700-EXIT.
+000071C            EXIT.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0027
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000072C       /
+000073C        SUB-9710-FIND-FORMAT.
+000074C       *---------------------
+000075C
+000076C            IF      W-RANDOM-NO <= L-FORMAT-WEIGHT-1(L-F-DX-1)
+000077C                SET  W-FOUND-DX     TO L-F-DX-1
+000078C                MOVE W-FOUND-DX     TO FAKER-TABLE-ENTRY
+000079C                                         IN L-PARAMETER(FI-DX)
+000080C            ELSE
+000081C                SUBTRACT L-FORMAT-WEIGHT-1(L-F-DX-1)
+000082C                                  FROM W-RANDOM-NO
+000083C            END-IF
+000084C            .
+000085C        SUB-9710-EXIT.
+000086C            EXIT.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0028
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000087C       /
+000088C        SUB-9720-FIND-FORMAT.
+000089C       *---------------------
+000090C
+000091C            IF      W-RANDOM-NO <= L-FORMAT-WEIGHT-2(L-F-DX-2)
+000092C                SET  W-FOUND-DX     TO L-F-DX-2
+000093C                MOVE W-FOUND-DX     TO FAKER-TABLE-ENTRY
+000094C                                         IN L-PARAMETER(FI-DX)
+000095C            ELSE
+000096C                SUBTRACT L-FORMAT-WEIGHT-2(L-F-DX-2)
+000097C                                  FROM W-RANDOM-NO
+000098C            END-IF
+000099C            .
+000100C        SUB-9720-EXIT.
+000101C            EXIT.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0029
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000278        /
+000279         SUB-9800-FIND-RANDOM-COMPANY.
+000280        *-----------------------------
+000281
+000282             PERFORM SUB-9901-CALL-FAKRAND THRU SUB-9901-EXIT
+000283
+000284             COMPUTE W-RANDOM-SUB    =  FAKRAND-RANDOM-NO
+000285                                        * L-COMPANY-ENTRY-CNT-1
+000286                                        + 1
+000287
+000288             MOVE W-RANDOM-SUB       TO FAKER-RANDOM-NO-SUB
+000289                                          IN L-PARAMETER(FI-DX)
+000290                                        W-FOUND-DX
+000291                                        FAKER-TABLE-ENTRY
+000292                                          IN L-PARAMETER(FI-DX)
+000293
+000294             MOVE L-COMPANY-ENTRY-1(W-FOUND-DX)
+000295                                     TO W-FAKER-RESULT
+000296             .
+000297         SUB-9800-EXIT.
+000298             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0030
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000299        /
+000300         SUB-9901-CALL-FAKRAND.
+000301        *----------------------
+000302
+000303             CALL W-FAKRAND-PROG  USING W-FAKRAND-PARAMETER
+000304             .
+000305         SUB-9901-EXIT.
+000306             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0031
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+      WORKING-STORAGE SECTION
+
+00002 NUMERIC        01   W-FOUND-DX                     S9(4) COMP
+
+00008 NUMERIC        01   W-RANDOM-NO                    S9(4)V9(9) COMP
+
+00002 NUMERIC        01   W-RANDOM-SUB                   S9(4) COMP
+
+00002 NUMERIC        01   W-SUB-1                        S9(4) COMP
+
+00002 NUMERIC        01   W-SUB-1-SAVE                   S9(4) COMP
+
+00002 NUMERIC        01   W-SUB-2                        S9(4) COMP
+
+00002 NUMERIC        01   W-SUB-D                        S9(4) COMP
+
+00002 NUMERIC        01   W-DIGIT-CNT                    S9(4) COMP
+
+00001 NUMERIC        01   W-RANDOM-DIG                   9
+
+00030 ALPHANUMERIC   01   W-TABLE-1                      X(30)
+
+00030 ALPHANUMERIC   01   W-TABLE-2                      X(30)
+
+00080 ALPHANUMERIC   01   W-FAKER-RESULT                 X(80)
+
+00080 ALPHANUMERIC   01   W-FAKER-FORMAT                 X(80)
+
+00001 ALPHANUMERIC   01   W-FORMAT-START                 X
+
+00001 ALPHANUMERIC   01   W-FORMAT-END                   X
+
+00001 ALPHANUMERIC   01   FILLER                         X(01)
+      CONDITIONAL    88   W-FIRST-CALL
+      CONDITIONAL    88   W-NOT-FIRST-CALL
+
+00021 GROUP          01   W-COMPILED-DATE
+00004 ALPHANUMERIC   05   W-COMPILED-DATE-YYYY           X(04)
+00002 ALPHANUMERIC   05   W-COMPILED-DATE-MM             X(02)
+00002 ALPHANUMERIC   05   W-COMPILED-DATE-DD             X(02)
+00002 ALPHANUMERIC   05   W-COMPILED-TIME-HH             X(02)
+00002 ALPHANUMERIC   05   W-COMPILED-TIME-MM             X(02)
+00002 ALPHANUMERIC   05   W-COMPILED-TIME-SS             X(02)
+00007 ALPHANUMERIC   05   FILLER                         X(07)
+
+00080 GROUP          01   W-RECURSED-FORMAT
+00001 ALPHANUMERIC   05   W-RECURSED-FORMAT-CHAR         X, OCCURS 80
+
+00080 ALPHANUMERIC   01   W-RECURSED-FORMAT-REST         X(80)
+
+00008 ALPHANUMERIC   01   W-FAKPERS-PROG                 X(08)
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0032
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+00008 ALPHANUMERIC   01   W-FAKRAND-PROG                 X(08)
+
+00004 ALPHANUMERIC   01   W-FORMAT-ENTRY                 X(04)
+      CONDITIONAL    88   W-FORMAT-ENTRY-IS-FORMAT
+
+01160 GROUP          01   W-FAKER-PARAMETER
+00030 ALPHANUMERIC   05   FAKER-PROVIDER-FUNCTION        X(30)
+      CONDITIONAL    88   ADDRESS-ADDRESS
+      CONDITIONAL    88   ADDRESS-BUILDING-NO
+      CONDITIONAL    88   ADDRESS-CITY
+      CONDITIONAL    88   ADDRESS-CITY-PREFIX
+      CONDITIONAL    88   ADDRESS-CITY-SUFFIX
+      CONDITIONAL    88   ADDRESS-MILITARY-APO
+      CONDITIONAL    88   ADDRESS-MILITARY-DPO
+      CONDITIONAL    88   ADDRESS-MILITARY-SHIP-PREFIX
+      CONDITIONAL    88   ADDRESS-MILITARY-STATE-ABBR
+      CONDITIONAL    88   ADDRESS-POSTCODE
+      CONDITIONAL    88   ADDRESS-SECONDARY-ADDRESS
+      CONDITIONAL    88   ADDRESS-STATE
+      CONDITIONAL    88   ADDRESS-STATE-ABBR
+      CONDITIONAL    88   ADDRESS-STATE-POSTCODE
+      CONDITIONAL    88   ADDRESS-STREET-ADDRESS
+      CONDITIONAL    88   ADDRESS-STREET-NAME
+      CONDITIONAL    88   ADDRESS-STREET-SUFFIX
+      CONDITIONAL    88   ADDRESS-TERRITORY-ABBR
+      CONDITIONAL    88   COMPANY-COMPANY
+      CONDITIONAL    88   COMPANY-SUFFIX
+      CONDITIONAL    88   PERSON-FIRST-NAME
+      CONDITIONAL    88   PERSON-FIRST-NAME-MALE
+      CONDITIONAL    88   PERSON-FIRST-NAME-FEMALE
+      CONDITIONAL    88   PERSON-LAST-NAME
+      CONDITIONAL    88   PERSON-LAST-NAME-MALE
+      CONDITIONAL    88   PERSON-LAST-NAME-FEMALE
+      CONDITIONAL    88   PERSON-NAME
+      CONDITIONAL    88   PERSON-NAME-MALE
+      CONDITIONAL    88   PERSON-NAME-FEMALE
+      CONDITIONAL    88   PERSON-PREFIX
+      CONDITIONAL    88   PERSON-PREFIX-MALE
+      CONDITIONAL    88   PERSON-PREFIX-FEMALE
+      CONDITIONAL    88   PERSON-SUFFIX
+      CONDITIONAL    88   PERSON-SUFFIX-MALE
+      CONDITIONAL    88   PERSON-SUFFIX-FEMALE
+      CONDITIONAL    88   TAXID-EIN
+      CONDITIONAL    88   TAXID-EIN-HYPHEN
+      CONDITIONAL    88   TAXID-ITIN
+      CONDITIONAL    88   TAXID-ITIN-HYPHEN
+      CONDITIONAL    88   TAXID-SSN
+      CONDITIONAL    88   TAXID-SSN-HYPHEN
+00004 NUMERIC        05   FAKER-SEED-NO                  9(9) COMP
+00080 ALPHANUMERIC   05   FAKER-SEED-TEXT                X(80)
+00004 NUMERIC        05   FAKER-RESPONSE-CODE            9(4)
+      CONDITIONAL    88   FAKER-RESPONSE-GOOD
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0033
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+      CONDITIONAL    88   FAKER-UNKNOWN-PROVIDER
+      CONDITIONAL    88   FAKER-UNKNOWN-FUNCTION
+      CONDITIONAL    88   FAKER-UNKNOWN-FORMAT
+00080 ALPHANUMERIC   05   FAKER-RESPONSE-MSG             X(80)
+00080 ALPHANUMERIC   05   FAKER-RESULT                   X(80)
+00080 ALPHANUMERIC   05   FAKER-RESULT-FIELDS            X(80)
+00080 GROUP          05   FAKER-ADDRESS, REDEFINES FAKER-RESULT-FIELDS
+00035 ALPHANUMERIC   10   FAKER-ADDRESS-STREET           X(35)
+00025 ALPHANUMERIC   10   FAKER-ADDRESS-CITY             X(25)
+00010 ALPHANUMERIC   10   FAKER-ADDRESS-STATE            X(10)
+00010 ALPHANUMERIC   10   FAKER-ADDRESS-POSTCODE         X(10)
+00080 GROUP          05   FAKER-PERSON, REDEFINES FAKER-RESULT-FIELDS
+00010 ALPHANUMERIC   10   FAKER-PERSON-PREFIX            X(10)
+00025 ALPHANUMERIC   10   FAKER-PERSON-FIRST-NAME        X(25)
+00035 ALPHANUMERIC   10   FAKER-PERSON-LAST-NAME         X(35)
+00010 ALPHANUMERIC   10   FAKER-PERSON-SUFFIX            X(10)
+00002 NUMERIC        05   FAKER-INFO-CNT                 S9(4) COMP
+00800 GROUP          05   FAKER-INFO-OCCS
+00800 GROUP          10   FAKER-INFO                     OCCURS 20
+00030 ALPHANUMERIC   15   FAKER-TABLE                    X(30)
+00008 NUMERIC        15   FAKER-RANDOM-NO-SUB            S9(4)V9(9) COMP
+00002 NUMERIC        15   FAKER-TABLE-ENTRY              S9(4) COMP
+
+00088 GROUP          01   W-FAKRAND-PARAMETER
+00004 NUMERIC        05   FAKRAND-SEED-NO                9(09) COMP
+00080 ALPHANUMERIC   05   FAKRAND-SEED-TEXT              X(80)
+00004 NUMERIC        05   FAKRAND-RANDOM-NO              V9(09) COMP
+
+00118 GROUP          01   FORMATS-COMPANY
+00002 NUMERIC        05   FORMAT-COMPANY-CNT             S9(4) COMP
+00008 NUMERIC        05   FORMAT-COMPANY-WEIGHT-TOT      S99V9(9) COMP
+00108 GROUP          05   FORMAT-COMPANY-OCCS
+00032 ALPHANUMERIC   10   FILLER                         X(32)
+00004 NUMERIC        10   FILLER                         SV9(9) COMP
+00032 ALPHANUMERIC   10   FILLER                         X(32)
+00004 NUMERIC        10   FILLER                         SV9(9) COMP
+00032 ALPHANUMERIC   10   FILLER                         X(32)
+00004 NUMERIC        10   FILLER                         SV9(9) COMP
+00108 GROUP          05   FILLER, REDEFINES FORMAT-COMPANY-OCCS
+00108 GROUP          10   FILLER                         OCCURS 3
+00032 ALPHANUMERIC   15   FORMAT-COMPANY                 X(32)
+00004 NUMERIC        15   FORMAT-COMPANY-WEIGHT          SV9(9) COMP
+
+00086 GROUP          01   COMPANY-SUFFIXES
+00002 NUMERIC        05   COMPANY-SUFFIX-CNT             S9(4) COMP
+00084 GROUP          05   COMPANY-SUFFIX-OCCS
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0034
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+00084 GROUP          05   FILLER, REDEFINES COMPANY-SUFFIX-OCCS
+00084 GROUP          10   FILLER                         OCCURS 6
+00014 ALPHANUMERIC   15   COMPANY-SUFFIX                 X(14)
+
+      LINKAGE SECTION
+
+01160 GROUP          01   L-PARAMETER
+00030 ALPHANUMERIC   05   FAKER-PROVIDER-FUNCTION        X(30)
+      CONDITIONAL    88   ADDRESS-ADDRESS
+      CONDITIONAL    88   ADDRESS-BUILDING-NO
+      CONDITIONAL    88   ADDRESS-CITY
+      CONDITIONAL    88   ADDRESS-CITY-PREFIX
+      CONDITIONAL    88   ADDRESS-CITY-SUFFIX
+      CONDITIONAL    88   ADDRESS-MILITARY-APO
+      CONDITIONAL    88   ADDRESS-MILITARY-DPO
+      CONDITIONAL    88   ADDRESS-MILITARY-SHIP-PREFIX
+      CONDITIONAL    88   ADDRESS-MILITARY-STATE-ABBR
+      CONDITIONAL    88   ADDRESS-POSTCODE
+      CONDITIONAL    88   ADDRESS-SECONDARY-ADDRESS
+      CONDITIONAL    88   ADDRESS-STATE
+      CONDITIONAL    88   ADDRESS-STATE-ABBR
+      CONDITIONAL    88   ADDRESS-STATE-POSTCODE
+      CONDITIONAL    88   ADDRESS-STREET-ADDRESS
+      CONDITIONAL    88   ADDRESS-STREET-NAME
+      CONDITIONAL    88   ADDRESS-STREET-SUFFIX
+      CONDITIONAL    88   ADDRESS-TERRITORY-ABBR
+      CONDITIONAL    88   COMPANY-COMPANY
+      CONDITIONAL    88   COMPANY-SUFFIX
+      CONDITIONAL    88   PERSON-FIRST-NAME
+      CONDITIONAL    88   PERSON-FIRST-NAME-MALE
+      CONDITIONAL    88   PERSON-FIRST-NAME-FEMALE
+      CONDITIONAL    88   PERSON-LAST-NAME
+      CONDITIONAL    88   PERSON-LAST-NAME-MALE
+      CONDITIONAL    88   PERSON-LAST-NAME-FEMALE
+      CONDITIONAL    88   PERSON-NAME
+      CONDITIONAL    88   PERSON-NAME-MALE
+      CONDITIONAL    88   PERSON-NAME-FEMALE
+      CONDITIONAL    88   PERSON-PREFIX
+      CONDITIONAL    88   PERSON-PREFIX-MALE
+      CONDITIONAL    88   PERSON-PREFIX-FEMALE
+      CONDITIONAL    88   PERSON-SUFFIX
+      CONDITIONAL    88   PERSON-SUFFIX-MALE
+      CONDITIONAL    88   PERSON-SUFFIX-FEMALE
+      CONDITIONAL    88   TAXID-EIN
+      CONDITIONAL    88   TAXID-EIN-HYPHEN
+      CONDITIONAL    88   TAXID-ITIN
+      CONDITIONAL    88   TAXID-ITIN-HYPHEN
+      CONDITIONAL    88   TAXID-SSN
+      CONDITIONAL    88   TAXID-SSN-HYPHEN
+00004 NUMERIC        05   FAKER-SEED-NO                  9(9) COMP
+00080 ALPHANUMERIC   05   FAKER-SEED-TEXT                X(80)
+00004 NUMERIC        05   FAKER-RESPONSE-CODE            9(4)
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0035
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+      CONDITIONAL    88   FAKER-RESPONSE-GOOD
+      CONDITIONAL    88   FAKER-UNKNOWN-PROVIDER
+      CONDITIONAL    88   FAKER-UNKNOWN-FUNCTION
+      CONDITIONAL    88   FAKER-UNKNOWN-FORMAT
+00080 ALPHANUMERIC   05   FAKER-RESPONSE-MSG             X(80)
+00080 ALPHANUMERIC   05   FAKER-RESULT                   X(80)
+00080 ALPHANUMERIC   05   FAKER-RESULT-FIELDS            X(80)
+00080 GROUP          05   FAKER-ADDRESS, REDEFINES FAKER-RESULT-FIELDS
+00035 ALPHANUMERIC   10   FAKER-ADDRESS-STREET           X(35)
+00025 ALPHANUMERIC   10   FAKER-ADDRESS-CITY             X(25)
+00010 ALPHANUMERIC   10   FAKER-ADDRESS-STATE            X(10)
+00010 ALPHANUMERIC   10   FAKER-ADDRESS-POSTCODE         X(10)
+00080 GROUP          05   FAKER-PERSON, REDEFINES FAKER-RESULT-FIELDS
+00010 ALPHANUMERIC   10   FAKER-PERSON-PREFIX            X(10)
+00025 ALPHANUMERIC   10   FAKER-PERSON-FIRST-NAME        X(25)
+00035 ALPHANUMERIC   10   FAKER-PERSON-LAST-NAME         X(35)
+00010 ALPHANUMERIC   10   FAKER-PERSON-SUFFIX            X(10)
+00002 NUMERIC        05   FAKER-INFO-CNT                 S9(4) COMP
+00800 GROUP          05   FAKER-INFO-OCCS
+00800 GROUP          10   FAKER-INFO                     OCCURS 20
+00030 ALPHANUMERIC   15   FAKER-TABLE                    X(30)
+00008 NUMERIC        15   FAKER-RANDOM-NO-SUB            S9(4)V9(9) COMP
+00002 NUMERIC        15   FAKER-TABLE-ENTRY              S9(4) COMP
+
+00370 GROUP          01   L-FORMAT-TABLE-1
+00002 NUMERIC        05   L-FORMAT-ENTRY-CNT-1           S9(4) COMP
+00008 NUMERIC        05   L-FORMAT-WEIGHT-TOT-1          S99V9(9) COMP
+00360 GROUP          05   L-FORMAT-OCCS-1
+00360 GROUP          10   FILLER                         OCCURS 10
+00032 ALPHANUMERIC   15   L-FORMAT-ENTRY-1               X(32)
+00004 NUMERIC        15   L-FORMAT-WEIGHT-1              SV9(9) COMP
+
+00370 GROUP          01   L-FORMAT-TABLE-2
+00002 NUMERIC        05   L-FORMAT-ENTRY-CNT-2           S9(4) COMP
+00008 NUMERIC        05   L-FORMAT-WEIGHT-TOT-2          S99V9(9) COMP
+00360 GROUP          05   L-FORMAT-OCCS-2
+00360 GROUP          10   FILLER                         OCCURS 10
+00032 ALPHANUMERIC   15   L-FORMAT-ENTRY-2               X(32)
+00004 NUMERIC        15   L-FORMAT-WEIGHT-2              SV9(9) COMP
+
+14002 GROUP          01   L-COMPANY-TABLE-1
+00002 NUMERIC        05   L-COMPANY-ENTRY-CNT-1          S9(4) COMP
+14000 GROUP          05   L-COMPANY-OCCS-1
+14000 GROUP          10   FILLER                         OCCURS 1000
+00014 ALPHANUMERIC   15   L-COMPANY-ENTRY-1              X(14)
+
+
+GnuCOBOL 3.0-rc1.0      FAKCOMP.cob                                                   Sun Feb 09 14:56:10 2020  Page 0036
+
+Error/Warning summary:
+
+FAKCOMP.cob:179: warning: ignoring redundant .
+
+1 warning in compilation group
+0 errors in compilation group

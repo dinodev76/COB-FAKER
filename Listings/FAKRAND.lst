@@ -1,0 +1,320 @@
+GnuCOBOL 3.0-rc1.0      FAKRAND.cob                                                   Sun Feb 09 14:56:30 2020  Page 0001
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000001        *========================== COB-FAKER ===========================*
+000002        * Authors: Brian D Pead
+000003        *
+000004        * License: MIT
+000005        *
+000006        * Date        Version  Description
+000007        * ----        -------  -----------
+000008        * 2020-02-08  1.0      First release
+000009        *================================================================*
+000010
+000011         IDENTIFICATION DIVISION.
+000012        *========================
+000013
+000014         PROGRAM-ID.             FAKRAND.
+000015
+000016         ENVIRONMENT DIVISION.
+000017        *=====================
+000018
+000019         CONFIGURATION SECTION.
+000020        *----------------------
+000021
+000022         SOURCE-COMPUTER.
+000023             IBM-Z15.
+000024        *    IBM-Z15 DEBUGGING MODE.
+000025
+000026         INPUT-OUTPUT SECTION.
+000027        *---------------------
+000028
+000029         FILE-CONTROL.
+GnuCOBOL 3.0-rc1.0      FAKRAND.cob                                                   Sun Feb 09 14:56:30 2020  Page 0002
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000030        /
+000031         DATA DIVISION.
+000032        *==============
+000033
+000034         FILE SECTION.
+000035        *-------------
+000036
+000037         WORKING-STORAGE SECTION.
+000038        *------------------------
+000039
+000040         01  W-MAX-SEED-NO           PIC 9(9)   COMP VALUE 2147483645.
+000041         01  W-SEED-NO               PIC 9(9)   COMP.
+000042         01  W-RANDOM-NO             PIC V9(9)  COMP.
+000043         01  W-SUB                   PIC S9(04) COMP.
+000044         01  W-CRC32-PROG            PIC X(08)       VALUE 'CRC32'.
+000045
+000046         01  FILLER                  PIC X(01)       VALUE 'Y'.
+000047             88  W-FIRST-CALL                        VALUE 'Y'.
+000048             88  W-NOT-FIRST-CALL                    VALUE 'N'.
+000049
+000050         01  W-COMPILED-DATE.
+000051             05  W-COMPILED-DATE-YYYY
+000052                                     PIC X(04).
+000053             05  W-COMPILED-DATE-MM  PIC X(02).
+000054             05  W-COMPILED-DATE-DD  PIC X(02).
+000055             05  W-COMPILED-TIME-HH  PIC X(02).
+000056             05  W-COMPILED-TIME-MM  PIC X(02).
+000057             05  W-COMPILED-TIME-SS  PIC X(02).
+000058             05  FILLER              PIC X(07).
+000059
+000060         01  W-CURRENT-DATE.
+000061             05  W-CURRENT-YYYY-MM-DD
+000062                                     PIC 9(08).
+000063             05  W-CURRENT-HH-MM-SS-HS
+000064                                     PIC 9(08).
+000065             05  FILLER              PIC X(05).
+000066
+000067         01  W-CRC32-PARAMETER.      COPY CRC32L.
+000001C       *========================== CRC32L.cpy ==========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * Description: Linkage parameter for subroutine CRC32 which
+000005C       *              calculates a CRC-32 checksum.
+000006C       *
+000007C       * License: MIT
+000008C       *
+000009C       * Date        Version  Description
+000010C       * ----        -------  -----------
+000011C       * 2020-02-08  1.0      First release
+000012C       *================================================================*
+000013C
+000014C       *01  CRC32-PATRAMETER.
+GnuCOBOL 3.0-rc1.0      FAKRAND.cob                                                   Sun Feb 09 14:56:30 2020  Page 0003
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000015C
+000016C       **** Input fields:
+000017C       ****     CRC-STAGE:
+000018C       ****         Stage of the checksum process - use values other than
+000019C       ****         'SE' when data to checksum is passed in chunks.
+000020C       ****     CRC-BUFFER:
+000021C       ****         Pointer to buffer on which to calculate checksum.
+000022C       ****     CRC-BUFFER-LEN:
+000023C       ****         Length of buffer.
+000024C
+000025C       **** Output field:
+000026C       ****     CRC-CHECKSUM:
+000027C       ****         Calculated checksum (partial result if processing in
+000028C       ****         chunks).
+000029C
+000030C            05  CRC-STAGE           PIC X(02)       VALUE 'SE'.
+000031C                88  CRC-STAGE-START-END             VALUE 'SE'.
+000032C                88  CRC-STAGE-START                 VALUE 'ST'.
+000033C                88  CRC-STAGE-IN-PROCESS            VALUE 'IP'.
+000034C                88  CRC-STAGE-END                   VALUE 'EN'.
+000035C
+000036C            05  CRC-BUFFER-PTR                      POINTER.
+000037C
+000038C            05  CRC-BUFFER-LEN      PIC 9(09)  COMP.
+000039C
+000040C            05  CRC-CHECKSUM        PIC 9(09)  COMP.
+warning: line not terminated by a newline
+GnuCOBOL 3.0-rc1.0      FAKRAND.cob                                                   Sun Feb 09 14:56:30 2020  Page 0004
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000068        /
+000069         LINKAGE SECTION.
+000070        *----------------
+000071
+000072         01  L-PARAMETER.          COPY FAKRANDL.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C            05  FAKRAND-SEED-NO     PIC 9(09)  COMP VALUE 0.
+000012C
+000013C            05  FAKRAND-SEED-TEXT   PIC X(80)       VALUE SPACES.
+000014C
+000015C            05  FAKRAND-RANDOM-NO   PIC V9(09) COMP.
+GnuCOBOL 3.0-rc1.0      FAKRAND.cob                                                   Sun Feb 09 14:56:30 2020  Page 0005
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000073        /
+000074         PROCEDURE DIVISION USING L-PARAMETER.
+000075        *==================
+000076
+000077         MAIN.
+000078        *-----
+000079
+000080             PERFORM SUB-1000-START-UP THRU SUB-1000-EXIT
+000081
+000082             PERFORM SUB-2000-PROCESS THRU SUB-2000-EXIT
+000083             .
+000084         MAIN-EXIT.
+000085             GOBACK.
+GnuCOBOL 3.0-rc1.0      FAKRAND.cob                                                   Sun Feb 09 14:56:30 2020  Page 0006
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000086        /
+000087         SUB-1000-START-UP.
+000088        *------------------
+000089
+000090             IF      W-NOT-FIRST-CALL
+000091                 GO TO SUB-1000-EXIT
+000092             END-IF
+000093
+000094             SET  W-NOT-FIRST-CALL   TO TRUE
+000095             MOVE FUNCTION WHEN-COMPILED
+000096                                     TO W-COMPILED-DATE
+000097
+000098             DISPLAY 'FAKRAND  compiled on '
+000099                 W-COMPILED-DATE-YYYY '/'
+000100                 W-COMPILED-DATE-MM   '/'
+000101                 W-COMPILED-DATE-DD   ' at '
+000102                 W-COMPILED-TIME-HH   ':'
+000103                 W-COMPILED-TIME-MM   ':'
+000104                 W-COMPILED-TIME-SS
+000105
+000106             MOVE FUNCTION CURRENT-DATE
+000107                                     TO W-CURRENT-DATE
+000108             COMPUTE W-RANDOM-NO = FUNCTION RANDOM(W-CURRENT-HH-MM-SS-HS)
+000109                                    * 999999999
+000110             .
+000111         SUB-1000-EXIT.
+000112             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKRAND.cob                                                   Sun Feb 09 14:56:30 2020  Page 0007
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000113        /
+000114         SUB-2000-PROCESS.
+000115        *-----------------
+000116
+000117             MOVE 0                  TO W-SEED-NO
+000118
+000119             EVALUATE TRUE
+000120               WHEN FAKRAND-SEED-NO > 0
+000121                 MOVE FAKRAND-SEED-NO
+000122                                     TO W-SEED-NO
+000123
+000124               WHEN FAKRAND-SEED-TEXT NOT = SPACES
+000125                 PERFORM SUB-2100-HASH-SEED-TEXT THRU SUB-2100-EXIT
+000126             END-EVALUATE
+000127
+000128             IF      W-SEED-NO = 0
+000129                 MOVE FUNCTION RANDOM
+000130                                     TO FAKRAND-RANDOM-NO
+000131             ELSE
+000132                 MOVE FUNCTION RANDOM(W-SEED-NO)
+000133                                     TO FAKRAND-RANDOM-NO
+000134             END-IF
+000135
+000136             MOVE 0                  TO FAKRAND-SEED-NO
+000137             MOVE SPACES             TO FAKRAND-SEED-TEXT
+000138             .
+000139         SUB-2000-EXIT.
+000140             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKRAND.cob                                                   Sun Feb 09 14:56:30 2020  Page 0008
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000141        /
+000142         SUB-2100-HASH-SEED-TEXT.
+000143        *------------------------
+000144
+000145             SET  CRC-STAGE-START-END
+000146                                     TO TRUE
+000147             SET  CRC-BUFFER-PTR     TO ADDRESS OF FAKRAND-SEED-TEXT
+000148
+000149             PERFORM VARYING CRC-BUFFER-LEN
+000150                        FROM LENGTH OF FAKRAND-SEED-TEXT
+000151                          BY -1
+000152                       UNTIL FAKRAND-SEED-TEXT(CRC-BUFFER-LEN : 1)
+000153                             NOT = SPACE
+000154                 CONTINUE
+000155             END-PERFORM
+000156
+000157             CALL W-CRC32-PROG    USING W-CRC32-PARAMETER
+000158
+000159             MOVE CRC-CHECKSUM       TO W-SEED-NO
+000160
+000161             IF      W-SEED-NO > W-MAX-SEED-NO
+000162                 SUBTRACT W-MAX-SEED-NO
+000163                                   FROM W-SEED-NO
+000164             END-IF
+000165
+000166        D     DISPLAY 'FAKRAND hashed seed of '''
+000167        D             FAKRAND-SEED-TEXT(1 : CRC-BUFFER-LEN)
+000168        D             ''' is '
+000169        D             W-SEED-NO
+000170             .
+000171         SUB-2100-EXIT.
+000172             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKRAND.cob                                                   Sun Feb 09 14:56:30 2020  Page 0009
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+      WORKING-STORAGE SECTION
+
+00004 NUMERIC        01   W-MAX-SEED-NO                  9(9) COMP
+
+00004 NUMERIC        01   W-SEED-NO                      9(9) COMP
+
+00004 NUMERIC        01   W-RANDOM-NO                    V9(9) COMP
+
+00002 NUMERIC        01   W-SUB                          S9(04) COMP
+
+00008 ALPHANUMERIC   01   W-CRC32-PROG                   X(08)
+
+00001 ALPHANUMERIC   01   FILLER                         X(01)
+      CONDITIONAL    88   W-FIRST-CALL
+      CONDITIONAL    88   W-NOT-FIRST-CALL
+
+00021 GROUP          01   W-COMPILED-DATE
+00004 ALPHANUMERIC   05   W-COMPILED-DATE-YYYY           X(04)
+00002 ALPHANUMERIC   05   W-COMPILED-DATE-MM             X(02)
+00002 ALPHANUMERIC   05   W-COMPILED-DATE-DD             X(02)
+00002 ALPHANUMERIC   05   W-COMPILED-TIME-HH             X(02)
+00002 ALPHANUMERIC   05   W-COMPILED-TIME-MM             X(02)
+00002 ALPHANUMERIC   05   W-COMPILED-TIME-SS             X(02)
+00007 ALPHANUMERIC   05   FILLER                         X(07)
+
+00021 GROUP          01   W-CURRENT-DATE
+00008 NUMERIC        05   W-CURRENT-YYYY-MM-DD           9(08)
+00008 NUMERIC        05   W-CURRENT-HH-MM-SS-HS          9(08)
+00005 ALPHANUMERIC   05   FILLER                         X(05)
+
+00018 GROUP          01   W-CRC32-PARAMETER
+00002 ALPHANUMERIC   05   CRC-STAGE                      X(02)
+      CONDITIONAL    88   CRC-STAGE-START-END
+      CONDITIONAL    88   CRC-STAGE-START
+      CONDITIONAL    88   CRC-STAGE-IN-PROCESS
+      CONDITIONAL    88   CRC-STAGE-END
+00008 POINTER        05   CRC-BUFFER-PTR
+00004 NUMERIC        05   CRC-BUFFER-LEN                 9(09) COMP
+00004 NUMERIC        05   CRC-CHECKSUM                   9(09) COMP
+
+      LINKAGE SECTION
+
+00088 GROUP          01   L-PARAMETER
+00004 NUMERIC        05   FAKRAND-SEED-NO                9(09) COMP
+00080 ALPHANUMERIC   05   FAKRAND-SEED-TEXT              X(80)
+00004 NUMERIC        05   FAKRAND-RANDOM-NO              V9(09) COMP
+
+
+GnuCOBOL 3.0-rc1.0      FAKRAND.cob                                                   Sun Feb 09 14:56:30 2020  Page 0010
+
+Error/Warning summary:
+
+E:/Users/Brian D Pead/Documents/GnuCOBOL Projects/COB-FAKER/CopyBooks/CRC32L.CPY:40: warning: line not terminated by a newline
+
+1 warning in compilation group
+0 errors in compilation group

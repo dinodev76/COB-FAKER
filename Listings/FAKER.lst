@@ -1,4 +1,4 @@
-GnuCOBOL 3.0-rc1.0      FAKERGEN.cob                                                  Sun Feb 09 14:57:30 2020  Page 0001
+GnuCOBOL 3.0-rc1.0      FAKER.cob                                                     Sun Feb 09 14:56:16 2020  Page 0001
 
 LINE    PG/LN  A...B............................................................SEQUENCE
 
@@ -15,7 +15,7 @@ LINE    PG/LN  A...B............................................................
 000011         IDENTIFICATION DIVISION.
 000012        *========================
 000013
-000014         PROGRAM-ID.             FAKERGEN.
+000014         PROGRAM-ID.             FAKER.
 000015
 000016         ENVIRONMENT DIVISION.
 000017        *=====================
@@ -31,70 +31,66 @@ LINE    PG/LN  A...B............................................................
 000027        *---------------------
 000028
 000029         FILE-CONTROL.
-000030             SELECT GNRTFILE             ASSIGN 'Data\FAKERGEN Output.txt'
-000031                                         ORGANIZATION LINE SEQUENTIAL.
-GnuCOBOL 3.0-rc1.0      FAKERGEN.cob                                                  Sun Feb 09 14:57:30 2020  Page 0002
+GnuCOBOL 3.0-rc1.0      FAKER.cob                                                     Sun Feb 09 14:56:16 2020  Page 0002
 
 LINE    PG/LN  A...B............................................................SEQUENCE
 
-000032        /
-000033         DATA DIVISION.
-000034        *==============
-000035
-000036         FILE SECTION.
-000037        *-------------
-000038
-000039         FD  GNRTFILE.
-000040
-000041         01  GNRTFILE-REC.
-000042             05  G-TAXID-SSN         PIC X(12).
-000043             05  G-PERSON.
-000044                 10  G-PERSON-PREFIX PIC X(10).
-000045                 10  G-PERSON-FIRST-NAME
-000046                                     PIC X(25).
-000047                 10  G-PERSON-LAST-NAME
-000048                                     PIC X(35).
-000049                 10  G-PERSON-SUFFIX PIC X(10).
-000050             05  G-ADDRESS.
-000051                 10  G-ADDRESS-STREET
-000052                                     PIC X(35).
-000053                 10  G-ADDRESS-CITY  PIC X(25).
-000054                 10  G-ADDRESS-STATE PIC X(10).
-000055                 10  G-ADDRESS-POSTCODE
-000056                                     PIC X(10).
-000057
-000058         WORKING-STORAGE SECTION.
-000059        *------------------------
+000030        /
+000031         DATA DIVISION.
+000032        *==============
+000033
+000034         FILE SECTION.
+000035        *-------------
+000036
+000037         WORKING-STORAGE SECTION.
+000038        *------------------------
+000039
+000040         01  W-FAKER-PROVIDER        PIC X(12).
+000041         01  W-FAKRAND-PROG          PIC X(08)       VALUE 'FAKRAND'.
+000042         01  W-FAKADDR-PROG          PIC X(08)       VALUE 'FAKADDR'.
+000043         01  W-FAKCOMP-PROG          PIC X(08)       VALUE 'FAKCOMP'.
+000044         01  W-FAKPERS-PROG          PIC X(08)       VALUE 'FAKPERS'.
+000045         01  W-FAKTXID-PROG          PIC X(08)       VALUE 'FAKTXID'.
+000046
+000047         01  FILLER                  PIC X(01)       VALUE 'Y'.
+000048             88  W-FIRST-CALL                        VALUE 'Y'.
+000049             88  W-NOT-FIRST-CALL                    VALUE 'N'.
+000050
+000051         01  W-COMPILED-DATE.
+000052             05  W-COMPILED-DATE-YYYY
+000053                                     PIC X(04).
+000054             05  W-COMPILED-DATE-MM  PIC X(02).
+000055             05  W-COMPILED-DATE-DD  PIC X(02).
+000056             05  W-COMPILED-TIME-HH  PIC X(02).
+000057             05  W-COMPILED-TIME-MM  PIC X(02).
+000058             05  W-COMPILED-TIME-SS  PIC X(02).
+000059             05  FILLER              PIC X(07).
 000060
-000061         01  W-GNRTFILE-RECS         PIC 9(09)  COMP VALUE 0.
-000062         01  W-TEST-CNT              PIC 9(09)  COMP.
-000063         01  W-DISP-NUM              PIC ZZ,ZZ9.
-000064         01  W-FAKER-PROG            PIC X(08)       VALUE 'FAKER'.
-000065
-000066         01  W-ERROR-MSG             PIC X(21)       VALUE
-000067             '**** FAKERGEN error: '.
-000068
-000069         01  W-SEED-TEXT.
-000070             05  FILLER              PIC X(65)       VALUE
-000071                 'Seed text to cause same pseudo-random sequence on each e
-000072        -        'xecution '.
-000073             05  W-SEED-REC-NO       PIC 9(04).
-000074
-000075         01  W-COMPILED-DATE.
-000076             05  W-COMPILED-DATE-YYYY
-000077                                     PIC X(04).
-000078             05  W-COMPILED-DATE-MM  PIC X(02).
-000079             05  W-COMPILED-DATE-DD  PIC X(02).
-000080             05  W-COMPILED-TIME-HH  PIC X(02).
-000081             05  W-COMPILED-TIME-MM  PIC X(02).
-000082             05  W-COMPILED-TIME-SS  PIC X(02).
-000083             05  FILLER              PIC X(07).
-GnuCOBOL 3.0-rc1.0      FAKERGEN.cob                                                  Sun Feb 09 14:57:30 2020  Page 0003
+000061         01  W-FAKRAND-PARAMETER.    COPY FAKRANDL.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C            05  FAKRAND-SEED-NO     PIC 9(09)  COMP VALUE 0.
+000012C
+000013C            05  FAKRAND-SEED-TEXT   PIC X(80)       VALUE SPACES.
+000014C
+000015C            05  FAKRAND-RANDOM-NO   PIC V9(09) COMP.
+GnuCOBOL 3.0-rc1.0      FAKER.cob                                                     Sun Feb 09 14:56:16 2020  Page 0003
 
 LINE    PG/LN  A...B............................................................SEQUENCE
 
-000084
-000085         01  W-FAKER-PARAMETER.      COPY FAKERLNK.
+000062        /
+000063         LINKAGE SECTION.
+000064        *----------------
+000065
+000066         01  L-PARAMETER.            COPY FAKERLNK.
 000001C       *========================== COB-FAKER ===========================*
 000002C       * Authors: Brian D Pead
 000003C       *
@@ -142,13 +138,13 @@ LINE    PG/LN  A...B............................................................
 000045C                                    'ADDRESS-POSTCODE'.
 000046C                88  ADDRESS-SECONDARY-ADDRESS       VALUE
 000047C                                    'ADDRESS-SECONDARY-ADDRESS'.
-000048C                88  ADDRESS-STATE                   VALUE
-000049C                                    'ADDRESS-STATE'.
-000050C                88  ADDRESS-STATE-ABBR              VALUE
-GnuCOBOL 3.0-rc1.0      FAKERGEN.cob                                                  Sun Feb 09 14:57:30 2020  Page 0004
+GnuCOBOL 3.0-rc1.0      FAKER.cob                                                     Sun Feb 09 14:56:16 2020  Page 0004
 
 LINE    PG/LN  A...B............................................................SEQUENCE
 
+000048C                88  ADDRESS-STATE                   VALUE
+000049C                                    'ADDRESS-STATE'.
+000050C                88  ADDRESS-STATE-ABBR              VALUE
 000051C                                    'ADDRESS-STATE-ABBR'.
 000052C                88  ADDRESS-STATE-POSTCODE          VALUE
 000053C                                    'ADDRESS-STATE-POSTCODE'.
@@ -198,13 +194,13 @@ LINE    PG/LN  A...B............................................................
 000097C                                    'TAXID-EIN'.
 000098C                88  TAXID-EIN-HYPHEN                VALUE
 000099C                                    'TAXID-EIN-HYPHEN'.
-000100C                88  TAXID-ITIN                      VALUE
-000101C                                    'TAXID-ITIN'.
-000102C                88  TAXID-ITIN-HYPHEN               VALUE
-GnuCOBOL 3.0-rc1.0      FAKERGEN.cob                                                  Sun Feb 09 14:57:30 2020  Page 0005
+GnuCOBOL 3.0-rc1.0      FAKER.cob                                                     Sun Feb 09 14:56:16 2020  Page 0005
 
 LINE    PG/LN  A...B............................................................SEQUENCE
 
+000100C                88  TAXID-ITIN                      VALUE
+000101C                                    'TAXID-ITIN'.
+000102C                88  TAXID-ITIN-HYPHEN               VALUE
 000103C                                    'TAXID-ITIN-HYPHEN'.
 000104C                88  TAXID-SSN                       VALUE
 000105C                                    'TAXID-SSN'.
@@ -254,13 +250,13 @@ LINE    PG/LN  A...B............................................................
 000149C                                    PIC X(10).
 000150C
 000151C       **** These fields are populated only for PERSON-NAME,
-000152C       **** PERSON-NAME-MALE and PERSON-NAME-FEMALE calls:
-000153C            05  FAKER-PERSON REDEFINES FAKER-RESULT-FIELDS.
-000154C                10  FAKER-PERSON-PREFIX
-GnuCOBOL 3.0-rc1.0      FAKERGEN.cob                                                  Sun Feb 09 14:57:30 2020  Page 0006
+GnuCOBOL 3.0-rc1.0      FAKER.cob                                                     Sun Feb 09 14:56:16 2020  Page 0006
 
 LINE    PG/LN  A...B............................................................SEQUENCE
 
+000152C       **** PERSON-NAME-MALE and PERSON-NAME-FEMALE calls:
+000153C            05  FAKER-PERSON REDEFINES FAKER-RESULT-FIELDS.
+000154C                10  FAKER-PERSON-PREFIX
 000155C                                    PIC X(10).
 000156C                10  FAKER-PERSON-FIRST-NAME
 000157C                                    PIC X(25).
@@ -282,214 +278,159 @@ LINE    PG/LN  A...B............................................................
 000173C                    15  FAKER-TABLE-ENTRY
 000174C                                    PIC S9(4)  COMP.
 000175C
-GnuCOBOL 3.0-rc1.0      FAKERGEN.cob                                                  Sun Feb 09 14:57:30 2020  Page 0007
+GnuCOBOL 3.0-rc1.0      FAKER.cob                                                     Sun Feb 09 14:56:16 2020  Page 0007
 
 LINE    PG/LN  A...B............................................................SEQUENCE
 
-000086        /
-000087         PROCEDURE DIVISION.
-000088        *===================
-000089
-000090         MAIN.
-000091        *-----
-000092
-000093             PERFORM SUB-1000-START-UP THRU SUB-1000-EXIT
-000094
-000095             PERFORM SUB-2000-PROCESS THRU SUB-2000-EXIT
-000096                 1000 TIMES
-000097
-000098             PERFORM SUB-3000-SHUT-DOWN THRU SUB-3000-EXIT
-000099             .
-000100         MAIN-EXIT.
-000101             STOP RUN.
-GnuCOBOL 3.0-rc1.0      FAKERGEN.cob                                                  Sun Feb 09 14:57:30 2020  Page 0008
+000067        /
+000068         PROCEDURE DIVISION USING L-PARAMETER.
+000069        *==================
+000070
+000071         MAIN.
+000072        *-----
+000073
+000074             PERFORM SUB-1000-START-UP THRU SUB-1000-EXIT
+000075
+000076             PERFORM SUB-2000-PROCESS THRU SUB-2000-EXIT
+000077
+000078             PERFORM SUB-3000-SHUT-DOWN THRU SUB-3000-EXIT
+000079             .
+000080         MAIN-EXIT.
+000081             GOBACK.
+GnuCOBOL 3.0-rc1.0      FAKER.cob                                                     Sun Feb 09 14:56:16 2020  Page 0008
 
 LINE    PG/LN  A...B............................................................SEQUENCE
 
-000102        /
-000103         SUB-1000-START-UP.
-000104        *------------------
-000105
-000106             MOVE FUNCTION WHEN-COMPILED
-000107                                     TO W-COMPILED-DATE
-000108
-000109             DISPLAY 'FAKERGEN compiled on '
-000110                 W-COMPILED-DATE-YYYY '/'
-000111                 W-COMPILED-DATE-MM   '/'
-000112                 W-COMPILED-DATE-DD   ' at '
-000113                 W-COMPILED-TIME-HH   ':'
-000114                 W-COMPILED-TIME-MM   ':'
-000115                 W-COMPILED-TIME-SS
-000116
-000117             OPEN OUTPUT GNRTFILE
-000118             .
-000119         SUB-1000-EXIT.
-000120             EXIT.
-GnuCOBOL 3.0-rc1.0      FAKERGEN.cob                                                  Sun Feb 09 14:57:30 2020  Page 0009
+000082        /
+000083         SUB-1000-START-UP.
+000084        *------------------
+000085
+000086             SET  FAKER-RESPONSE-GOOD
+000087                                     TO TRUE
+000088             MOVE SPACES             TO FAKER-RESPONSE-MSG
+000089                                        FAKER-RESULT
+000090                                        FAKER-RESULT-FIELDS
+000091             MOVE 0                  TO FAKER-INFO-CNT
+000092             MOVE LOW-VALUES         TO FAKER-INFO-OCCS
+000093
+000094             IF      FAKER-SEED-NO > 0
+000095             OR      FAKER-SEED-TEXT NOT = SPACES
+000096                 PERFORM SUB-9100-CALL-FAKRAND THRU SUB-9100-EXIT
+000097             END-IF
+000098
+000099             IF      W-NOT-FIRST-CALL
+000100                 GO TO SUB-1000-EXIT
+000101             END-IF
+000102
+000103             SET W-NOT-FIRST-CALL    TO TRUE
+000104             MOVE FUNCTION WHEN-COMPILED
+000105                                     TO W-COMPILED-DATE
+000106
+000107             DISPLAY 'FAKER    compiled on '
+000108                 W-COMPILED-DATE-YYYY '/'
+000109                 W-COMPILED-DATE-MM   '/'
+000110                 W-COMPILED-DATE-DD   ' at '
+000111                 W-COMPILED-TIME-HH   ':'
+000112                 W-COMPILED-TIME-MM   ':'
+000113                 W-COMPILED-TIME-SS
+000114             .
+000115         SUB-1000-EXIT.
+000116             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKER.cob                                                     Sun Feb 09 14:56:16 2020  Page 0009
 
 LINE    PG/LN  A...B............................................................SEQUENCE
 
-000121        /
-000122         SUB-2000-PROCESS.
-000123        *-----------------
+000117        /
+000118         SUB-2000-PROCESS.
+000119        *-----------------
+000120
+000121             UNSTRING FAKER-PROVIDER-FUNCTION
+000122                              DELIMITED '-'
+000123                                   INTO W-FAKER-PROVIDER
 000124
-000125             ADD  1                  TO W-GNRTFILE-RECS
-000126        *     MOVE W-GNRTFILE-RECS          TO FAKER-SEED-NO
-000127             MOVE W-GNRTFILE-RECS          TO W-SEED-REC-NO
-000128             MOVE W-SEED-TEXT        TO FAKER-SEED-TEXT
-000129
-000130        **** TAXID:
-000131
-000132             SET  TAXID-SSN-HYPHEN   TO TRUE
-000133
-000134             PERFORM SUB-2100-CALL-FAKER THRU SUB-2100-EXIT
-000135
-000136             IF      FAKER-RESPONSE-GOOD
-000137                 MOVE FAKER-RESULT   TO G-TAXID-SSN
-000138             ELSE
-000139                 MOVE 'ERROR'        TO G-TAXID-SSN
-000140             END-IF
-000141
-000142        **** PERSON:
-000143
-000144             SET  PERSON-NAME        TO TRUE
-000145
-000146             PERFORM SUB-2100-CALL-FAKER THRU SUB-2100-EXIT
-000147
-000148             IF      FAKER-RESPONSE-GOOD
-000149                 MOVE FAKER-PERSON-PREFIX
-000150                                     TO G-PERSON-PREFIX
-000151                 MOVE FAKER-PERSON-FIRST-NAME
-000152                                     TO G-PERSON-FIRST-NAME
-000153                 MOVE FAKER-PERSON-LAST-NAME
-000154                                     TO G-PERSON-LAST-NAME
-000155                 MOVE FAKER-PERSON-SUFFIX
-000156                                     TO G-PERSON-SUFFIX
-000157             ELSE
-000158                 MOVE FAKER-RESPONSE-MSG
-000159                                     TO G-PERSON
-000160             END-IF
-000161
-000162        **** ADDRESS:
-000163
-000164             SET  ADDRESS-ADDRESS    TO TRUE
-000165
-000166             PERFORM SUB-2100-CALL-FAKER THRU SUB-2100-EXIT
+000125             EVALUATE W-FAKER-PROVIDER
+000126               WHEN 'ADDRESS'
+000127                 CALL W-FAKADDR-PROG
+000128                                  USING L-PARAMETER
+000129               WHEN 'COMPANY'
+000130                 CALL W-FAKCOMP-PROG
+000131                                  USING L-PARAMETER
+000132               WHEN 'PERSON'
+000133                 CALL W-FAKPERS-PROG
+000134                                  USING L-PARAMETER
+000135               WHEN 'TAXID'
+000136                 CALL W-FAKTXID-PROG
+000137                                  USING L-PARAMETER
+000138               WHEN OTHER
+000139                 SET  FAKER-UNKNOWN-PROVIDER
+000140                                     TO TRUE
+000141                 STRING 'Unknown FAKER provider "'
+000142                         W-FAKER-PROVIDER
+000143                         '"'  DELIMITED SIZE
+000144                                   INTO FAKER-RESPONSE-MSG
+000145             END-EVALUATE
+000146             .
+000147         SUB-2000-EXIT.
+000148             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKER.cob                                                     Sun Feb 09 14:56:16 2020  Page 0010
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000149        /
+000150         SUB-3000-SHUT-DOWN.
+warning: ignoring redundant .
+000151        *-------------------
+000152
+000153        D    IF      FAKER-RESPONSE-GOOD
+000154        D        DISPLAY 'FAKER completed successfully'
+000155        D    ELSE
+000156        D        DISPLAY 'FAKER ended with error '
+000157        D                FAKER-RESPONSE-CODE
+000158        D                ': '
+000159        D                FAKER-RESPONSE-MSG
+000160        D    END-IF
+000161             .
+000162         SUB-3000-EXIT.
+000163             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKER.cob                                                     Sun Feb 09 14:56:16 2020  Page 0011
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000164        /
+000165         SUB-9100-CALL-FAKRAND.
+000166        *----------------------
 000167
-000168             IF      FAKER-RESPONSE-GOOD
-000169                 MOVE FAKER-ADDRESS-STREET
-000170                                     TO G-ADDRESS-STREET
-000171                 MOVE FAKER-ADDRESS-CITY
-000172                                     TO G-ADDRESS-CITY
-GnuCOBOL 3.0-rc1.0      FAKERGEN.cob                                                  Sun Feb 09 14:57:30 2020  Page 0010
-
-LINE    PG/LN  A...B............................................................SEQUENCE
-
-000173                 MOVE FAKER-ADDRESS-STATE
-000174                                     TO G-ADDRESS-STATE
-000175                 MOVE FAKER-ADDRESS-POSTCODE
-000176                                     TO G-ADDRESS-POSTCODE
-000177             ELSE
-000178                 MOVE FAKER-RESPONSE-MSG
-000179                                     TO G-ADDRESS
-000180             END-IF
-000181
-000182             PERFORM SUB-9100-WRITE-GNRTFILE THRU SUB-9100-EXIT
-000183             .
-000184         SUB-2000-EXIT.
-000185             EXIT.
-GnuCOBOL 3.0-rc1.0      FAKERGEN.cob                                                  Sun Feb 09 14:57:30 2020  Page 0011
-
-LINE    PG/LN  A...B............................................................SEQUENCE
-
-000186        /
-000187         SUB-2100-CALL-FAKER.
-000188        *--------------------
-000189
-000190             CALL W-FAKER-PROG    USING W-FAKER-PARAMETER
-000191
-000192             IF      NOT FAKER-RESPONSE-GOOD
-000193                 DISPLAY W-ERROR-MSG
-000194                         FAKER-RESPONSE-CODE
-000195                         ' - '
-000196                         FAKER-RESPONSE-MSG
-000197             END-IF
-000198
-000199        D     PERFORM VARYING FI-DX FROM 1 BY 1
-000200        D               UNTIL FI-DX > FAKER-INFO-CNT
-000201        D         DISPLAY '    INFO: '
-000202        D                 FAKER-TABLE(FI-DX)
-000203        D                 ': '
-000204        D                 FAKER-RANDOM-NO-SUB(FI-DX)
-000205        D                 ', '
-000206        D                 FAKER-TABLE-ENTRY(FI-DX)
-000207        D     END-PERFORM
-000208             .
-000209         SUB-2100-EXIT.
-000210             EXIT.
-GnuCOBOL 3.0-rc1.0      FAKERGEN.cob                                                  Sun Feb 09 14:57:30 2020  Page 0012
-
-LINE    PG/LN  A...B............................................................SEQUENCE
-
-000211        /
-000212         SUB-3000-SHUT-DOWN.
-000213        *-------------------
-000214
-000215             CLOSE GNRTFILE
-000216
-000217             MOVE W-GNRTFILE-RECS    TO W-DISP-NUM
-000218             DISPLAY 'GNRTFILE records written: '
-000219                     W-DISP-NUM
-000220
-000221             DISPLAY 'FAKERGEN completed'
-000222             .
-000223         SUB-3000-EXIT.
-000224             EXIT.
-GnuCOBOL 3.0-rc1.0      FAKERGEN.cob                                                  Sun Feb 09 14:57:30 2020  Page 0013
-
-LINE    PG/LN  A...B............................................................SEQUENCE
-
-000225        /
-000226         SUB-9100-WRITE-GNRTFILE.
-000227        *------------------------
-000228
-000229             WRITE GNRTFILE-REC
-000230             .
-000231         SUB-9100-EXIT.
-000232             EXIT.
-GnuCOBOL 3.0-rc1.0      FAKERGEN.cob                                                  Sun Feb 09 14:57:30 2020  Page 0014
+000168             MOVE FAKER-SEED-NO      TO FAKRAND-SEED-NO
+000169             MOVE FAKER-SEED-TEXT    TO FAKRAND-SEED-TEXT
+000170
+000171             CALL W-FAKRAND-PROG  USING W-FAKRAND-PARAMETER
+000172
+000173             MOVE 0                  TO FAKER-SEED-NO
+000174             MOVE SPACES             TO FAKER-SEED-TEXT
+000175             .
+000176         SUB-9100-EXIT.
+000177             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKER.cob                                                     Sun Feb 09 14:56:16 2020  Page 0012
 
 SIZE  TYPE           LVL  NAME                           PICTURE
 
-00172 FILE                GNRTFILE
-00172 GROUP          01   GNRTFILE-REC
-00012 ALPHANUMERIC   05   G-TAXID-SSN                    X(12)
-00080 GROUP          05   G-PERSON
-00010 ALPHANUMERIC   10   G-PERSON-PREFIX                X(10)
-00025 ALPHANUMERIC   10   G-PERSON-FIRST-NAME            X(25)
-00035 ALPHANUMERIC   10   G-PERSON-LAST-NAME             X(35)
-00010 ALPHANUMERIC   10   G-PERSON-SUFFIX                X(10)
-00080 GROUP          05   G-ADDRESS
-00035 ALPHANUMERIC   10   G-ADDRESS-STREET               X(35)
-00025 ALPHANUMERIC   10   G-ADDRESS-CITY                 X(25)
-00010 ALPHANUMERIC   10   G-ADDRESS-STATE                X(10)
-00010 ALPHANUMERIC   10   G-ADDRESS-POSTCODE             X(10)
-
       WORKING-STORAGE SECTION
 
-00004 NUMERIC        01   W-GNRTFILE-RECS                9(09) COMP
+00012 ALPHANUMERIC   01   W-FAKER-PROVIDER               X(12)
 
-00004 NUMERIC        01   W-TEST-CNT                     9(09) COMP
+00008 ALPHANUMERIC   01   W-FAKRAND-PROG                 X(08)
 
-00006 NUMERIC        01   W-DISP-NUM                     ZZ,ZZ9
+00008 ALPHANUMERIC   01   W-FAKADDR-PROG                 X(08)
 
-00008 ALPHANUMERIC   01   W-FAKER-PROG                   X(08)
+00008 ALPHANUMERIC   01   W-FAKCOMP-PROG                 X(08)
 
-00021 ALPHANUMERIC   01   W-ERROR-MSG                    X(21)
+00008 ALPHANUMERIC   01   W-FAKPERS-PROG                 X(08)
 
-00069 GROUP          01   W-SEED-TEXT
-00065 ALPHANUMERIC   05   FILLER                         X(65)
-00004 NUMERIC        05   W-SEED-REC-NO                  9(04)
+00008 ALPHANUMERIC   01   W-FAKTXID-PROG                 X(08)
+
+00001 ALPHANUMERIC   01   FILLER                         X(01)
+      CONDITIONAL    88   W-FIRST-CALL
+      CONDITIONAL    88   W-NOT-FIRST-CALL
 
 00021 GROUP          01   W-COMPILED-DATE
 00004 ALPHANUMERIC   05   W-COMPILED-DATE-YYYY           X(04)
@@ -500,7 +441,14 @@ SIZE  TYPE           LVL  NAME                           PICTURE
 00002 ALPHANUMERIC   05   W-COMPILED-TIME-SS             X(02)
 00007 ALPHANUMERIC   05   FILLER                         X(07)
 
-01160 GROUP          01   W-FAKER-PARAMETER
+00088 GROUP          01   W-FAKRAND-PARAMETER
+00004 NUMERIC        05   FAKRAND-SEED-NO                9(09) COMP
+00080 ALPHANUMERIC   05   FAKRAND-SEED-TEXT              X(80)
+00004 NUMERIC        05   FAKRAND-RANDOM-NO              V9(09) COMP
+
+      LINKAGE SECTION
+
+01160 GROUP          01   L-PARAMETER
 00030 ALPHANUMERIC   05   FAKER-PROVIDER-FUNCTION        X(30)
       CONDITIONAL    88   ADDRESS-ADDRESS
       CONDITIONAL    88   ADDRESS-BUILDING-NO
@@ -512,15 +460,15 @@ SIZE  TYPE           LVL  NAME                           PICTURE
       CONDITIONAL    88   ADDRESS-MILITARY-SHIP-PREFIX
       CONDITIONAL    88   ADDRESS-MILITARY-STATE-ABBR
       CONDITIONAL    88   ADDRESS-POSTCODE
-GnuCOBOL 3.0-rc1.0      FAKERGEN.cob                                                  Sun Feb 09 14:57:30 2020  Page 0015
-
-SIZE  TYPE           LVL  NAME                           PICTURE
-
       CONDITIONAL    88   ADDRESS-SECONDARY-ADDRESS
       CONDITIONAL    88   ADDRESS-STATE
       CONDITIONAL    88   ADDRESS-STATE-ABBR
       CONDITIONAL    88   ADDRESS-STATE-POSTCODE
       CONDITIONAL    88   ADDRESS-STREET-ADDRESS
+GnuCOBOL 3.0-rc1.0      FAKER.cob                                                     Sun Feb 09 14:56:16 2020  Page 0013
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
       CONDITIONAL    88   ADDRESS-STREET-NAME
       CONDITIONAL    88   ADDRESS-STREET-SUFFIX
       CONDITIONAL    88   ADDRESS-TERRITORY-ABBR
@@ -568,16 +516,16 @@ SIZE  TYPE           LVL  NAME                           PICTURE
 00035 ALPHANUMERIC   10   FAKER-PERSON-LAST-NAME         X(35)
 00010 ALPHANUMERIC   10   FAKER-PERSON-SUFFIX            X(10)
 00002 NUMERIC        05   FAKER-INFO-CNT                 S9(4) COMP
-GnuCOBOL 3.0-rc1.0      FAKERGEN.cob                                                  Sun Feb 09 14:57:30 2020  Page 0016
-
-SIZE  TYPE           LVL  NAME                           PICTURE
-
 00800 GROUP          05   FAKER-INFO-OCCS
 00800 GROUP          10   FAKER-INFO                     OCCURS 20
 00030 ALPHANUMERIC   15   FAKER-TABLE                    X(30)
 00008 NUMERIC        15   FAKER-RANDOM-NO-SUB            S9(4)V9(9) COMP
 00002 NUMERIC        15   FAKER-TABLE-ENTRY              S9(4) COMP
+GnuCOBOL 3.0-rc1.0      FAKER.cob                                                     Sun Feb 09 14:56:16 2020  Page 0014
 
+Error/Warning summary:
 
-0 warnings in compilation group
+FAKER.cob:150: warning: ignoring redundant .
+
+1 warning in compilation group
 0 errors in compilation group

@@ -5,7 +5,7 @@
       *
       * Date        Version  Description
       * ----        -------  -----------
-      * 2020-01-12  0.1      First release
+      * 2020-02-08  1.0      First release
       *================================================================*
 
        IDENTIFICATION DIVISION.
@@ -38,6 +38,7 @@
       *------------------------
 
        01  W-FAKER-PROVIDER        PIC X(12).
+       01  W-FAKRAND-PROG          PIC X(08)       VALUE 'FAKRAND'.
        01  W-FAKADDR-PROG          PIC X(08)       VALUE 'FAKADDR'.
        01  W-FAKCOMP-PROG          PIC X(08)       VALUE 'FAKCOMP'.
        01  W-FAKPERS-PROG          PIC X(08)       VALUE 'FAKPERS'.
@@ -56,6 +57,8 @@
            05  W-COMPILED-TIME-MM  PIC X(02).
            05  W-COMPILED-TIME-SS  PIC X(02).
            05  FILLER              PIC X(07).
+
+       01  W-FAKRAND-PARAMETER.    COPY FAKRANDL.
       /
        LINKAGE SECTION.
       *----------------
@@ -87,6 +90,11 @@
                                       FAKER-RESULT-FIELDS
            MOVE 0                  TO FAKER-INFO-CNT
            MOVE LOW-VALUES         TO FAKER-INFO-OCCS
+
+           IF      FAKER-SEED-NO > 0
+           OR      FAKER-SEED-TEXT NOT = SPACES
+               PERFORM SUB-9100-CALL-FAKRAND THRU SUB-9100-EXIT
+           END-IF
 
            IF      W-NOT-FIRST-CALL
                GO TO SUB-1000-EXIT
@@ -152,4 +160,18 @@
       D    END-IF
            .
        SUB-3000-EXIT.
+           EXIT.
+      /
+       SUB-9100-CALL-FAKRAND.
+      *----------------------
+
+           MOVE FAKER-SEED-NO      TO FAKRAND-SEED-NO
+           MOVE FAKER-SEED-TEXT    TO FAKRAND-SEED-TEXT
+
+           CALL W-FAKRAND-PROG  USING W-FAKRAND-PARAMETER 
+
+           MOVE 0                  TO FAKER-SEED-NO
+           MOVE SPACES             TO FAKER-SEED-TEXT
+           .
+       SUB-9100-EXIT.
            EXIT.

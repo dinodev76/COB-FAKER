@@ -5,7 +5,7 @@
       *
       * Date        Version  Description
       * ----        -------  -----------
-      * 2020-01-12  0.1      First release
+      * 2020-02-08  1.0      First release
       *================================================================*
 
        IDENTIFICATION DIVISION.
@@ -37,14 +37,11 @@
        WORKING-STORAGE SECTION.
       *------------------------
 
-       01  W-SEED-NO               PIC S9(9)  COMP.
-       01  W-RANDOM-NO             PIC SV9(9) COMP.
+       01  W-MAX-SEED-NO           PIC 9(9)   COMP VALUE 2147483645.
+       01  W-SEED-NO               PIC 9(9)   COMP.
+       01  W-RANDOM-NO             PIC V9(9)  COMP.
        01  W-SUB                   PIC S9(04) COMP.
-
-       01  W-SEED-TEXT             PIC X(80).
-       01  FILLER REDEFINES W-SEED-TEXT.
-           05  W-SEED-TEXT-CHARS                   OCCURS 40.
-               10  W-SEED-TEXT-NO  PIC 9(4)   COMP.             
+       01  W-CRC32-PROG            PIC X(08)       VALUE 'CRC32'.
 
        01  FILLER                  PIC X(01)       VALUE 'Y'.
            88  W-FIRST-CALL                        VALUE 'Y'.
@@ -66,6 +63,8 @@
            05  W-CURRENT-HH-MM-SS-HS
                                    PIC 9(08).
            05  FILLER              PIC X(05).
+
+       01  W-CRC32-PARAMETER.      COPY CRC32L.
       /
        LINKAGE SECTION.
       *----------------
@@ -143,19 +142,30 @@
        SUB-2100-HASH-SEED-TEXT.
       *------------------------
 
-           MOVE FAKRAND-SEED-TEXT  TO W-SEED-TEXT
+           SET  CRC-STAGE-START-END
+                                   TO TRUE 
+           SET  CRC-BUFFER-PTR     TO ADDRESS OF FAKRAND-SEED-TEXT
 
-           PERFORM VARYING W-SUB FROM 40 BY -1
-                     UNTIL W-SUB < 1
-               IF      W-SEED-TEXT-CHARS(W-SUB) NOT = SPACES
-                   COMPUTE W-SEED-NO
-                                   =  W-SEED-NO
-                                   +  (W-SEED-TEXT-NO(W-SUB)
-                                   *   W-SUB)
-               END-IF
+           PERFORM VARYING CRC-BUFFER-LEN 
+                      FROM LENGTH OF FAKRAND-SEED-TEXT
+                        BY -1
+                     UNTIL FAKRAND-SEED-TEXT(CRC-BUFFER-LEN : 1)
+                           NOT = SPACE
+               CONTINUE
            END-PERFORM
 
-      D     DISPLAY 'FAKRAND hashed seed: '
+           CALL W-CRC32-PROG    USING W-CRC32-PARAMETER
+
+           MOVE CRC-CHECKSUM       TO W-SEED-NO
+
+           IF      W-SEED-NO > W-MAX-SEED-NO
+               SUBTRACT W-MAX-SEED-NO
+                                 FROM W-SEED-NO
+           END-IF
+
+      D     DISPLAY 'FAKRAND hashed seed of '''
+      D             FAKRAND-SEED-TEXT(1 : CRC-BUFFER-LEN)
+      D             ''' is '
       D             W-SEED-NO
            .
        SUB-2100-EXIT.

@@ -5,7 +5,7 @@
       *
       * Date        Version  Description
       * ----        -------  -----------
-      * 2020-01-12  0.1      First release
+      * 2020-02-08  1.0      First release
       *================================================================*
 
        IDENTIFICATION DIVISION.
@@ -40,6 +40,7 @@
        COPY FAKERWS1.
 
        01  W-EIN-SEQUENCE          PIC 9(7).
+       01  W-AREA-COMP             PIC 9(03)  COMP.
        01  W-AREA                  PIC 9(03).
        01  W-GROUP                 PIC 9(02).
        01  W-SERIAL                PIC 9(04).
@@ -71,9 +72,6 @@
       /
        SUB-1000-START-UP.
       *------------------
-
-           MOVE FAKER-SEED-TEXT    IN L-PARAMETER
-             TO FAKRAND-SEED-TEXT
 
            IF      W-NOT-FIRST-CALL
                GO TO SUB-1000-EXIT
@@ -189,10 +187,12 @@
 
            PERFORM SUB-9901-CALL-FAKRAND THRU SUB-9901-EXIT
 
+           COMPUTE W-EIN-SEQUENCE  =  EIN-SEQUENCE-MAX 
+                                      - EIN-SEQUENCE-MIN
+                                      + 1
+
            COMPUTE W-EIN-SEQUENCE  =  FAKRAND-RANDOM-NO
-                                      * (EIN-SEQUENCE-MAX 
-                                         - EIN-SEQUENCE-MIN
-                                         + 1)
+                                      * W-EIN-SEQUENCE
                                       + EIN-SEQUENCE-MIN  
 
            SET  FI-DX           UP BY 1
@@ -212,10 +212,12 @@
 
            PERFORM SUB-9901-CALL-FAKRAND THRU SUB-9901-EXIT
 
+           COMPUTE W-AREA          =  ITIN-AREA-MAX 
+                                      - ITIN-AREA-MIN
+                                      + 1
+
            COMPUTE W-AREA          =  FAKRAND-RANDOM-NO
-                                      * (ITIN-AREA-MAX 
-                                         - ITIN-AREA-MIN
-                                         + 1)
+                                      * W-AREA
                                       + ITIN-AREA-MIN  
 
            SET  FI-DX           UP BY 1
@@ -246,10 +248,12 @@
 
            PERFORM SUB-9901-CALL-FAKRAND THRU SUB-9901-EXIT
 
+           COMPUTE W-SERIAL        =  ITIN-SERIAL-MAX 
+                                      - ITIN-SERIAL-MIN
+                                      + 1
+ 
            COMPUTE W-SERIAL        =  FAKRAND-RANDOM-NO
-                                      * (ITIN-SERIAL-MAX 
-                                         - ITIN-SERIAL-MIN
-                                         + 1)
+                                      * W-SERIAL
                                       + ITIN-SERIAL-MIN  
 
            SET  FI-DX           UP BY 1
@@ -272,10 +276,12 @@
            PERFORM UNTIL W-AREA NOT = SSN-AREA-EXCL
                PERFORM SUB-9901-CALL-FAKRAND THRU SUB-9901-EXIT
 
+               COMPUTE W-AREA      =  SSN-AREA-MAX 
+                                      - SSN-AREA-MIN
+                                      + 1
+
                COMPUTE W-AREA      =  FAKRAND-RANDOM-NO
-                                      * (  SSN-AREA-MAX 
-                                         - SSN-AREA-MIN
-                                         + 1)
+                                      * W-AREA
                                       + SSN-AREA-MIN
            END-PERFORM  
 
@@ -290,10 +296,12 @@
 
            PERFORM SUB-9901-CALL-FAKRAND THRU SUB-9901-EXIT
 
+           COMPUTE W-GROUP         =  SSN-GROUP-MAX 
+                                      - SSN-GROUP-MIN
+                                      + 1
+
            COMPUTE W-GROUP         =  FAKRAND-RANDOM-NO
-                                      * (SSN-GROUP-MAX 
-                                         - SSN-GROUP-MIN
-                                         + 1)
+                                      * W-GROUP
                                       + SSN-GROUP-MIN  
 
            SET  FI-DX           UP BY 1
@@ -307,10 +315,12 @@
 
            PERFORM SUB-9901-CALL-FAKRAND THRU SUB-9901-EXIT
 
+           COMPUTE W-SERIAL        =  SSN-SERIAL-MAX 
+                                      - SSN-SERIAL-MIN
+                                      + 1
+
            COMPUTE W-SERIAL        =  FAKRAND-RANDOM-NO
-                                      * (SSN-SERIAL-MAX 
-                                         - SSN-SERIAL-MIN
-                                         + 1)
+                                      * W-SERIAL
                                       + SSN-SERIAL-MIN  
 
            SET  FI-DX           UP BY 1

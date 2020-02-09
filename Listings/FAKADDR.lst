@@ -1,0 +1,3235 @@
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0001
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000001        *========================== COB-FAKER ===========================*
+000002        * Authors: Brian D Pead
+000003        *
+000004        * License: MIT
+000005        *
+000006        * Date        Version  Description
+000007        * ----        -------  -----------
+000008        * 2020-02-08  1.0      First release
+000009        *================================================================*
+000010
+000011         IDENTIFICATION DIVISION.
+000012        *========================
+000013
+000014         PROGRAM-ID.             FAKADDR.
+000015
+000016         ENVIRONMENT DIVISION.
+000017        *=====================
+000018
+000019         CONFIGURATION SECTION.
+000020        *----------------------
+000021
+000022         SOURCE-COMPUTER.
+000023             IBM-Z15.
+000024        *    IBM-Z15 DEBUGGING MODE.
+000025
+000026         INPUT-OUTPUT SECTION.
+000027        *---------------------
+000028
+000029         FILE-CONTROL.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0002
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000030        /
+000031         DATA DIVISION.
+000032        *==============
+000033
+000034         FILE SECTION.
+000035        *-------------
+000036
+000037         WORKING-STORAGE SECTION.
+000038        *------------------------
+000039
+000040         COPY FAKERWS1.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C        01  W-FOUND-DX              PIC S9(4)  COMP.
+000012C        01  W-RANDOM-NO             PIC S9(4)V9(9)
+000013C                                               COMP.
+000014C        01  W-RANDOM-SUB            PIC S9(4)  COMP.
+000015C        01  W-SUB-1                 PIC S9(4)  COMP.
+000016C        01  W-SUB-1-SAVE            PIC S9(4)  COMP.
+000017C        01  W-SUB-2                 PIC S9(4)  COMP.
+000018C        01  W-SUB-D                 PIC S9(4)  COMP.
+000019C        01  W-DIGIT-CNT             PIC S9(4)  COMP.
+000020C        01  W-RANDOM-DIG            PIC 9.
+000021C        01  W-TABLE-1               PIC X(30).
+000022C        01  W-TABLE-2               PIC X(30)       VALUE SPACES.
+000023C        01  W-FAKER-RESULT          PIC X(80).
+000024C        01  W-FAKER-FORMAT          PIC X(80).
+000025C        01  W-FORMAT-START          PIC X           VALUE '{'.
+000026C        01  W-FORMAT-END            PIC X           VALUE '}'.
+000027C
+000028C        01  FILLER                  PIC X(01)       VALUE 'Y'.
+000029C            88  W-FIRST-CALL                        VALUE 'Y'.
+000030C            88  W-NOT-FIRST-CALL                    VALUE 'N'.
+000031C
+000032C        01  W-COMPILED-DATE.
+000033C            05  W-COMPILED-DATE-YYYY
+000034C                                    PIC X(04).
+000035C            05  W-COMPILED-DATE-MM  PIC X(02).
+000036C            05  W-COMPILED-DATE-DD  PIC X(02).
+000037C            05  W-COMPILED-TIME-HH  PIC X(02).
+000038C            05  W-COMPILED-TIME-MM  PIC X(02).
+000039C            05  W-COMPILED-TIME-SS  PIC X(02).
+000040C            05  FILLER              PIC X(07).
+000041C
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0003
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000042C        01  W-RECURSED-FORMAT.
+000043C            05  W-RECURSED-FORMAT-CHAR
+000044C                                    PIC X           OCCURS 80
+000045C                                                    INDEXED W-RF-DX.
+000046C        01  W-RECURSED-FORMAT-REST  PIC X(80).
+000041
+000042         01  W-POINTER               PIC S9(4)  COMP.
+000043         01  W-POSTCODE              PIC 9(05).
+000044         01  W-HASH                  PIC X(01)       VALUE '#'.
+000045         01  W-PERCENT               PIC X(01)       VALUE '%'.
+000046         01  W-FAKPERS-PROG          PIC X(08)       VALUE 'FAKPERS'.
+000047         01  W-FAKRAND-PROG          PIC X(08)       VALUE 'FAKRAND'.
+000048
+000049         01  W-FORMAT-ENTRY          PIC X(04).
+000050             88  W-FORMAT-ENTRY-IS-FORMAT            VALUE 'CT'
+000051                                                           'SA'
+000052                                                           'SN'.
+000053
+000054         01  W-FAKER-PARAMETER.      COPY FAKERLNK
+000055                                REPLACING ==FI-DX== BY ==W-FI-DX==.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C       **** Input fields:
+000012C       ****     FAKER-PROVIDER-FUNCTION:
+000013C       ****         Set appropriate 88 level for  desired function.
+000014C       ****     FAKER-SEED-NO:
+000015C       ****         If > 0, used to set seed to get same random
+000016C       ****         sequence on each call.
+000017C       ****     FAKER-SEED-TEXT:
+000018C       ****         If FAKER-SEED-NO = 0 and this is not spaces, used to
+000019C       ****         set seed to get same random sequence on each call
+000020C       ****         (e.g. to get same fake name each time real name is
+000021C       ****         being anonymized, move real name to FAKER-SEED-TEXT
+000022C       ****         before call).
+000023C
+000024C            05  FAKER-PROVIDER-FUNCTION
+000025C                                    PIC X(30).
+000026C                88  ADDRESS-ADDRESS                 VALUE
+000027C                                    'ADDRESS-ADDRESS'.
+000028C                88  ADDRESS-BUILDING-NO             VALUE
+000029C                                    'ADDRESS-BUILDING-NO'.
+000030C                88  ADDRESS-CITY                    VALUE
+000031C                                    'ADDRESS-CITY'.
+000032C                88  ADDRESS-CITY-PREFIX             VALUE
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0004
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000033C                                    'ADDRESS-CITY-PREFIX'.
+000034C                88  ADDRESS-CITY-SUFFIX             VALUE
+000035C                                    'ADDRESS-CITY-SUFFIX'.
+000036C                88  ADDRESS-MILITARY-APO            VALUE
+000037C                                    'ADDRESS-MILITARY-APO'.
+000038C                88  ADDRESS-MILITARY-DPO            VALUE
+000039C                                    'ADDRESS-MILITARY-DPO'.
+000040C                88  ADDRESS-MILITARY-SHIP-PREFIX    VALUE
+000041C                                    'ADDRESS-MILITARY-SHIP-PREFIX'.
+000042C                88  ADDRESS-MILITARY-STATE-ABBR     VALUE
+000043C                                    'ADDRESS-MILITARY-STATE-ABBR'.
+000044C                88  ADDRESS-POSTCODE                VALUE
+000045C                                    'ADDRESS-POSTCODE'.
+000046C                88  ADDRESS-SECONDARY-ADDRESS       VALUE
+000047C                                    'ADDRESS-SECONDARY-ADDRESS'.
+000048C                88  ADDRESS-STATE                   VALUE
+000049C                                    'ADDRESS-STATE'.
+000050C                88  ADDRESS-STATE-ABBR              VALUE
+000051C                                    'ADDRESS-STATE-ABBR'.
+000052C                88  ADDRESS-STATE-POSTCODE          VALUE
+000053C                                    'ADDRESS-STATE-POSTCODE'.
+000054C                88  ADDRESS-STREET-ADDRESS          VALUE
+000055C                                    'ADDRESS-STREET-ADDRESS'.
+000056C                88  ADDRESS-STREET-NAME             VALUE
+000057C                                    'ADDRESS-STREET-NAME'.
+000058C                88  ADDRESS-STREET-SUFFIX           VALUE
+000059C                                    'ADDRESS-STREET-SUFFIX'.
+000060C                88  ADDRESS-TERRITORY-ABBR          VALUE
+000061C                                    'ADDRESS-TERRITORY-ABBR'.
+000062C                88  COMPANY-COMPANY                 VALUE
+000063C                                    'COMPANY-COMPANY'.
+000064C                88  COMPANY-SUFFIX                  VALUE
+000065C                                    'COMPANY-SUFFIX'.
+000066C                88  PERSON-FIRST-NAME               VALUE
+000067C                                    'PERSON-FIRST-NAME'.
+000068C                88  PERSON-FIRST-NAME-MALE          VALUE
+000069C                                    'PERSON-FIRST-NAME-MALE'.
+000070C                88  PERSON-FIRST-NAME-FEMALE        VALUE
+000071C                                    'PERSON-FIRST-NAME-FEMALE'.
+000072C                88  PERSON-LAST-NAME                VALUE
+000073C                                    'PERSON-LAST-NAME'.
+000074C                88  PERSON-LAST-NAME-MALE           VALUE
+000075C                                    'PERSON-LAST-NAME-MALE'.
+000076C                88  PERSON-LAST-NAME-FEMALE         VALUE
+000077C                                    'PERSON-LAST-NAME-FEMALE'.
+000078C                88  PERSON-NAME                     VALUE
+000079C                                    'PERSON-NAME'.
+000080C                88  PERSON-NAME-MALE                VALUE
+000081C                                    'PERSON-NAME-MALE'.
+000082C                88  PERSON-NAME-FEMALE              VALUE
+000083C                                    'PERSON-NAME-FEMALE'.
+000084C                88  PERSON-PREFIX                   VALUE
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0005
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000085C                                    'PERSON-PREFIX'.
+000086C                88  PERSON-PREFIX-MALE              VALUE
+000087C                                    'PERSON-PREFIX-MALE'.
+000088C                88  PERSON-PREFIX-FEMALE            VALUE
+000089C                                    'PERSON-PREFIX-FEMALE'.
+000090C                88  PERSON-SUFFIX                   VALUE
+000091C                                    'PERSON-SUFFIX'.
+000092C                88  PERSON-SUFFIX-MALE              VALUE
+000093C                                    'PERSON-SUFFIX-MALE'.
+000094C                88  PERSON-SUFFIX-FEMALE            VALUE
+000095C                                    'PERSON-SUFFIX-FEMALE'.
+000096C                88  TAXID-EIN                       VALUE
+000097C                                    'TAXID-EIN'.
+000098C                88  TAXID-EIN-HYPHEN                VALUE
+000099C                                    'TAXID-EIN-HYPHEN'.
+000100C                88  TAXID-ITIN                      VALUE
+000101C                                    'TAXID-ITIN'.
+000102C                88  TAXID-ITIN-HYPHEN               VALUE
+000103C                                    'TAXID-ITIN-HYPHEN'.
+000104C                88  TAXID-SSN                       VALUE
+000105C                                    'TAXID-SSN'.
+000106C                88  TAXID-SSN-HYPHEN                VALUE
+000107C                                    'TAXID-SSN-HYPHEN'.
+000108C
+000109C            05  FAKER-SEED-NO       PIC 9(9)   COMP VALUE 0.
+000110C
+000111C            05  FAKER-SEED-TEXT     PIC X(80)       VALUE SPACES.
+000112C
+000113C       **** Output fields:
+000114C       ****     FAKER-RESPONSE-CODE
+000115C       ****         Use 88 levels to determine result of calls.
+000116C       ****     FAKER-RESPONSE-MSG
+000117C       ****         Non-space if bad response.
+000118C       ****     FAKER-RESULT
+000119C       ****         Returned result of the call.
+000120C       ****     FAKER-RESULT-FIELDS
+000121C       ****         Populated for certain compound results - redefined
+000122C       ****         for address and person fields.
+000123C       ****     FAKER-INFO-CNT
+000124C       ****         Debugging information count.
+000125C       ****     FAKER-INFO-OCCS
+000126C       ****         Debugging information.
+000127C
+000128C            05  FAKER-RESPONSE-CODE PIC 9(4).
+000129C                88  FAKER-RESPONSE-GOOD             VALUE 0.
+000130C                88  FAKER-UNKNOWN-PROVIDER          VALUE 10.
+000131C                88  FAKER-UNKNOWN-FUNCTION          VALUE 20.
+000132C                88  FAKER-UNKNOWN-FORMAT            VALUE 30.
+000133C
+000134C            05  FAKER-RESPONSE-MSG  PIC X(80).
+000135C
+000136C            05  FAKER-RESULT        PIC X(80).
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0006
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000137C
+000138C            05  FAKER-RESULT-FIELDS PIC X(80).
+000139C
+000140C       **** These fields are populated only for ADDRESS-ADDRESS calls:
+000141C            05  FAKER-ADDRESS REDEFINES FAKER-RESULT-FIELDS.
+000142C                10  FAKER-ADDRESS-STREET
+000143C                                    PIC X(35).
+000144C                10  FAKER-ADDRESS-CITY
+000145C                                    PIC X(25).
+000146C                10  FAKER-ADDRESS-STATE
+000147C                                    PIC X(10).
+000148C                10  FAKER-ADDRESS-POSTCODE
+000149C                                    PIC X(10).
+000150C
+000151C       **** These fields are populated only for PERSON-NAME,
+000152C       **** PERSON-NAME-MALE and PERSON-NAME-FEMALE calls:
+000153C            05  FAKER-PERSON REDEFINES FAKER-RESULT-FIELDS.
+000154C                10  FAKER-PERSON-PREFIX
+000155C                                    PIC X(10).
+000156C                10  FAKER-PERSON-FIRST-NAME
+000157C                                    PIC X(25).
+000158C                10  FAKER-PERSON-LAST-NAME
+000159C                                    PIC X(35).
+000160C                10  FAKER-PERSON-SUFFIX
+000161C                                    PIC X(10).
+000162C
+000163C            05  FAKER-INFO-CNT      PIC S9(4)  COMP.
+000164C
+000165C            05  FAKER-INFO-OCCS.
+000166C                10  FAKER-INFO                      OCCURS 20
+000167C            INDEXED W-FI-DX
+000168C                                                            FI-DX2.
+000169C                    15  FAKER-TABLE PIC X(30).
+000170C                    15  FAKER-RANDOM-NO-SUB
+000171C                                    PIC S9(4)V9(9)
+000172C                                               COMP.
+000173C                    15  FAKER-TABLE-ENTRY
+000174C                                    PIC S9(4)  COMP.
+000175C
+000056
+000057         01  W-FAKRAND-PARAMETER.    COPY FAKRANDL.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C            05  FAKRAND-SEED-NO     PIC 9(09)  COMP VALUE 0.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0007
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000012C
+000013C            05  FAKRAND-SEED-TEXT   PIC X(80)       VALUE SPACES.
+000014C
+000015C            05  FAKRAND-RANDOM-NO   PIC V9(09) COMP.
+000058
+000059         COPY FAKADDRW.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C       **** FORMAT CODES:
+000012C       ****     BN = building_number
+000013C       ****     CP = city_prefix
+000014C       ****     CS = city suffix
+000015C       ****     CT = city
+000016C       ****     FN = first_name (from FAKPERSW)
+000017C       ****     LN = last_name (from FAKPERSW)
+000018C       ****     MA = military_apo
+000019C       ****     MD = military_dpo
+000020C       ****     MS = military_state
+000021C       ****     M$ = military_ship
+000022C       ****     PC = postcode
+000023C       ****     SA = street_address
+000024C       ****     SN = street_name
+000025C       ****     SS = street_suffix
+000026C       ****     ST = state_abbr
+000027C       ****     SP = state_postcode
+000028C       ****     2A = secondary_address
+000029C
+000030C       **** All hash sign ('#') occurrences are replaced with a random
+000031C       **** digit (0 to 9).
+000032C       **** All percentage sign ('%') occurrences are replaced with a
+000033C       **** random non-zero digit (1 to 9).
+000034C
+000035C        01  FORMATS-CITY.
+000036C            05  FORMAT-CITY-CNT     PIC S9(4)  COMP VALUE 4.
+000037C            05  FORMAT-CITY-WEIGHT-TOT
+000038C                                    PIC S99V9(9)
+000039C                                               COMP VALUE 0.
+000040C            05  FORMAT-CITY-OCCS.
+000041C                10  FILLER          PIC X(32)       VALUE
+000042C                                                         '{CP} {FN}{CS}'.
+000043C                10  FILLER          PIC SV9(9) COMP VALUE  0.250000000.
+000044C                10  FILLER          PIC X(32)       VALUE '{CP} {FN}'.
+000045C                10  FILLER          PIC SV9(9) COMP VALUE  0.250000000.
+000046C                10  FILLER          PIC X(32)       VALUE '{FN}{CS}'.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0008
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000047C                10  FILLER          PIC SV9(9) COMP VALUE  0.250000000.
+000048C                10  FILLER          PIC X(32)       VALUE '{LN}{CS}'.
+000049C                10  FILLER          PIC SV9(9) COMP VALUE  0.250000000.
+000050C            05  FILLER REDEFINES FORMAT-CITY-OCCS.
+000051C                10  FILLER                          OCCURS 4
+000052C                                                    INDEXED FC-DX.
+000053C                    15  FORMAT-CITY PIC X(32).
+000054C                    15  FORMAT-CITY-WEIGHT
+000055C                                    PIC SV9(9) COMP.
+000056C
+000057C        01  FORMATS-STREET-NAME.
+000058C            05  FORMAT-STREET-NAME-CNT
+000059C                                    PIC S9(4)  COMP VALUE 2.
+000060C            05  FORMAT-STREET-NAME-WEIGHT-TOT
+000061C                                    PIC S99V9(9)
+000062C                                               COMP VALUE 0.
+000063C            05  FORMAT-STREET-NAME-OCCS.
+000064C                10  FILLER          PIC X(32)       VALUE '{FN} {SS}'.
+000065C                10  FILLER          PIC SV9(9) COMP VALUE  0.500000000.
+000066C                10  FILLER          PIC X(32)       VALUE '{LN} {SS}'.
+000067C                10  FILLER          PIC SV9(9) COMP VALUE  0.500000000.
+000068C            05  FILLER REDEFINES FORMAT-STREET-NAME-OCCS.
+000069C                10  FILLER                          OCCURS 2
+000070C                                                    INDEXED FSN-DX.
+000071C                    15  FORMAT-STREET-NAME
+000072C                                    PIC X(32).
+000073C                    15  FORMAT-STREET-NAME-WEIGHT
+000074C                                    PIC SV9(9) COMP.
+000075C
+000076C        01  FORMATS-STREET-ADDR.
+000077C            05  FORMAT-STREET-ADDR-CNT
+000078C                                    PIC S9(4)  COMP VALUE 2.
+000079C            05  FORMAT-STREET-ADDR-WEIGHT-TOT
+000080C                                    PIC S99V9(9)
+000081C                                               COMP VALUE 0.
+000082C            05  FORMAT-STREET-ADDR-OCCS.
+000083C                10  FILLER          PIC X(32)       VALUE '{BN} {SN}'.
+000084C                10  FILLER          PIC SV9(9) COMP VALUE  0.900000000.
+000085C                10  FILLER          PIC X(32)       VALUE
+000086C                                                       '{BN} {SN}, {2A}'.
+000087C                10  FILLER          PIC SV9(9) COMP VALUE  0.100000000.
+000088C            05  FILLER REDEFINES FORMAT-STREET-ADDR-OCCS.
+000089C                10  FILLER                          OCCURS 2
+000090C                                                    INDEXED FSA-DX.
+000091C                    15  FORMAT-STREET-ADDR
+000092C                                    PIC X(32).
+000093C                    15  FORMAT-STREET-ADDR-WEIGHT
+000094C                                    PIC SV9(9) COMP.
+000095C
+000096C        01  FORMATS-ADDRESS.
+000097C            05  FORMAT-ADDRESS-CNT
+000098C                                    PIC S9(4)  COMP VALUE 4.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0009
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000099C            05  FORMAT-ADDRESS-WEIGHT-TOT
+000100C                                    PIC S99V9(9)
+000101C                                               COMP VALUE 0.
+000102C            05  FORMAT-ADDRESS-OCCS.
+000103C                10  FILLER          PIC X(32)       VALUE
+000104C                                                 '{SA}\n{CT}, {SP}'.
+000105C                10  FILLER          PIC SV9(9) COMP VALUE  0.990000000.
+000106C                10  FILLER          PIC X(32)       VALUE
+000107C                                                   '{MA}\nAPO {MS} {PC}'.
+000108C                10  FILLER          PIC SV9(9) COMP VALUE  0.004000000.
+000109C                10  FILLER          PIC X(32)       VALUE
+000110C                                              '{M$} {LN}\nFPO {MS} {PC}'.
+000111C                10  FILLER          PIC SV9(9) COMP VALUE  0.003000000.
+000112C                10  FILLER          PIC X(32)       VALUE
+000113C                                                   '{MD}\nDPO {MS} {PC}'.
+000114C                10  FILLER          PIC SV9(9) COMP VALUE  0.003000000.
+000115C            05  FILLER REDEFINES FORMAT-ADDRESS-OCCS.
+000116C                10  FILLER                          OCCURS 4
+000117C                                                    INDEXED FA-DX.
+000118C                    15  FORMAT-ADDRESS
+000119C                                    PIC X(32).
+000120C                    15  FORMAT-ADDRESS-WEIGHT
+000121C                                    PIC SV9(9) COMP.
+000122C
+000123C        01  CITY-PREFIXES.
+000124C            05  CITY-PREFIX-CNT     PIC S9(4)  COMP VALUE 7.
+000125C            05  CITY-PREFIX-OCCS.
+000126C                10  FILLER          PIC X(14)       VALUE 'North'.
+000127C                10  FILLER          PIC X(14)       VALUE 'East'.
+000128C                10  FILLER          PIC X(14)       VALUE 'West'.
+000129C                10  FILLER          PIC X(14)       VALUE 'South'.
+000130C                10  FILLER          PIC X(14)       VALUE 'New'.
+000131C                10  FILLER          PIC X(14)       VALUE 'Lake'.
+000132C                10  FILLER          PIC X(14)       VALUE 'Port'.
+000133C            05  FILLER REDEFINES CITY-PREFIX-OCCS.
+000134C                10  FILLER                          OCCURS 7
+000135C                                                    INDEXED CP-DX.
+000136C                    15  CITY-PREFIX PIC X(14).
+000137C
+000138C        01  CITY-SUFFIXES.
+000139C            05  CITY-SUFFIX-CNT     PIC S9(4)  COMP VALUE 19.
+000140C            05  CITY-SUFFIX-OCCS.
+000141C                10  FILLER          PIC X(14)       VALUE 'town'.
+000142C                10  FILLER          PIC X(14)       VALUE 'ton'.
+000143C                10  FILLER          PIC X(14)       VALUE 'land'.
+000144C                10  FILLER          PIC X(14)       VALUE 'ville'.
+000145C                10  FILLER          PIC X(14)       VALUE 'berg'.
+000146C                10  FILLER          PIC X(14)       VALUE 'burgh'.
+000147C                10  FILLER          PIC X(14)       VALUE 'borough'.
+000148C                10  FILLER          PIC X(14)       VALUE 'bury'.
+000149C                10  FILLER          PIC X(14)       VALUE 'view'.
+000150C                10  FILLER          PIC X(14)       VALUE 'port'.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0010
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000151C                10  FILLER          PIC X(14)       VALUE 'mouth'.
+000152C                10  FILLER          PIC X(14)       VALUE 'stad'.
+000153C                10  FILLER          PIC X(14)       VALUE 'furt'.
+000154C                10  FILLER          PIC X(14)       VALUE 'chester'.
+000155C                10  FILLER          PIC X(14)       VALUE 'mouth'.
+000156C                10  FILLER          PIC X(14)       VALUE 'fort'.
+000157C                10  FILLER          PIC X(14)       VALUE 'haven'.
+000158C                10  FILLER          PIC X(14)       VALUE 'side'.
+000159C                10  FILLER          PIC X(14)       VALUE 'shire'.
+000160C            05  FILLER REDEFINES CITY-SUFFIX-OCCS.
+000161C                10  FILLER                          OCCURS 19
+000162C                                                    INDEXED CS-DX.
+000163C                    15  CITY-SUFFIX PIC X(14).
+000164C
+000165C        01  BUILDING-NUMBER-FORMATS.
+000166C            05  BUILDING-NUMBER-FORMAT-CNT
+000167C                                    PIC S9(4)  COMP VALUE 3.
+000168C            05  BUILDING-NUMBER-FORMAT-OCCS.
+000169C                10  FILLER          PIC X(14)       VALUE '%####'.
+000170C                10  FILLER          PIC X(14)       VALUE '%###'.
+000171C                10  FILLER          PIC X(14)       VALUE '%##'.
+000172C            05  FILLER REDEFINES BUILDING-NUMBER-FORMAT-OCCS.
+000173C                10  FILLER                          OCCURS 3
+000174C                                                    INDEXED BNF-DX.
+000175C                    15  BUILDING-NUMBER-FORMAT
+000176C                                    PIC X(14).
+000177C
+000178C        01  STREET-SUFFIXES.
+000179C            05  STREET-SUFFIX-CNT   PIC S9(4)  COMP VALUE 225.
+000180C            05  STREET-SUFFIX-OCCS.
+000181C                10  FILLER          PIC X(14)       VALUE 'Alley'.
+000182C                10  FILLER          PIC X(14)       VALUE 'Avenue'.
+000183C                10  FILLER          PIC X(14)       VALUE 'Branch'.
+000184C                10  FILLER          PIC X(14)       VALUE 'Bridge'.
+000185C                10  FILLER          PIC X(14)       VALUE 'Brook'.
+000186C                10  FILLER          PIC X(14)       VALUE 'Brooks'.
+000187C                10  FILLER          PIC X(14)       VALUE 'Burg'.
+000188C                10  FILLER          PIC X(14)       VALUE 'Burgs'.
+000189C                10  FILLER          PIC X(14)       VALUE 'Bypass'.
+000190C                10  FILLER          PIC X(14)       VALUE 'Camp'.
+000191C                10  FILLER          PIC X(14)       VALUE 'Canyon'.
+000192C                10  FILLER          PIC X(14)       VALUE 'Cape'.
+000193C                10  FILLER          PIC X(14)       VALUE 'Causeway'.
+000194C                10  FILLER          PIC X(14)       VALUE 'Center'.
+000195C                10  FILLER          PIC X(14)       VALUE 'Centers'.
+000196C                10  FILLER          PIC X(14)       VALUE 'Circle'.
+000197C                10  FILLER          PIC X(14)       VALUE 'Circles'.
+000198C                10  FILLER          PIC X(14)       VALUE 'Cliff'.
+000199C                10  FILLER          PIC X(14)       VALUE 'Cliffs'.
+000200C                10  FILLER          PIC X(14)       VALUE 'Club'.
+000201C                10  FILLER          PIC X(14)       VALUE 'Common'.
+000202C                10  FILLER          PIC X(14)       VALUE 'Corner'.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0011
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000203C                10  FILLER          PIC X(14)       VALUE 'Corners'.
+000204C                10  FILLER          PIC X(14)       VALUE 'Course'.
+000205C                10  FILLER          PIC X(14)       VALUE 'Court'.
+000206C                10  FILLER          PIC X(14)       VALUE 'Courts'.
+000207C                10  FILLER          PIC X(14)       VALUE 'Cove'.
+000208C                10  FILLER          PIC X(14)       VALUE 'Coves'.
+000209C                10  FILLER          PIC X(14)       VALUE 'Creek'.
+000210C                10  FILLER          PIC X(14)       VALUE 'Crescent'.
+000211C                10  FILLER          PIC X(14)       VALUE 'Crest'.
+000212C                10  FILLER          PIC X(14)       VALUE 'Crossing'.
+000213C                10  FILLER          PIC X(14)       VALUE 'Crossroad'.
+000214C                10  FILLER          PIC X(14)       VALUE 'Curve'.
+000215C                10  FILLER          PIC X(14)       VALUE 'Dale'.
+000216C                10  FILLER          PIC X(14)       VALUE 'Dam'.
+000217C                10  FILLER          PIC X(14)       VALUE 'Divide'.
+000218C                10  FILLER          PIC X(14)       VALUE 'Drive'.
+000219C                10  FILLER          PIC X(14)       VALUE 'Drive'.
+000220C                10  FILLER          PIC X(14)       VALUE 'Drives'.
+000221C                10  FILLER          PIC X(14)       VALUE 'Estate'.
+000222C                10  FILLER          PIC X(14)       VALUE 'Estates'.
+000223C                10  FILLER          PIC X(14)       VALUE 'Expressway'.
+000224C                10  FILLER          PIC X(14)       VALUE 'Extension'.
+000225C                10  FILLER          PIC X(14)       VALUE 'Extensions'.
+000226C                10  FILLER          PIC X(14)       VALUE 'Fall'.
+000227C                10  FILLER          PIC X(14)       VALUE 'Falls'.
+000228C                10  FILLER          PIC X(14)       VALUE 'Ferry'.
+000229C                10  FILLER          PIC X(14)       VALUE 'Field'.
+000230C                10  FILLER          PIC X(14)       VALUE 'Fields'.
+000231C                10  FILLER          PIC X(14)       VALUE 'Flat'.
+000232C                10  FILLER          PIC X(14)       VALUE 'Flats'.
+000233C                10  FILLER          PIC X(14)       VALUE 'Ford'.
+000234C                10  FILLER          PIC X(14)       VALUE 'Fords'.
+000235C                10  FILLER          PIC X(14)       VALUE 'Forest'.
+000236C                10  FILLER          PIC X(14)       VALUE 'Forge'.
+000237C                10  FILLER          PIC X(14)       VALUE 'Forges'.
+000238C                10  FILLER          PIC X(14)       VALUE 'Fork'.
+000239C                10  FILLER          PIC X(14)       VALUE 'Forks'.
+000240C                10  FILLER          PIC X(14)       VALUE 'Fort'.
+000241C                10  FILLER          PIC X(14)       VALUE 'Freeway'.
+000242C                10  FILLER          PIC X(14)       VALUE 'Garden'.
+000243C                10  FILLER          PIC X(14)       VALUE 'Gardens'.
+000244C                10  FILLER          PIC X(14)       VALUE 'Gateway'.
+000245C                10  FILLER          PIC X(14)       VALUE 'Glen'.
+000246C                10  FILLER          PIC X(14)       VALUE 'Glens'.
+000247C                10  FILLER          PIC X(14)       VALUE 'Green'.
+000248C                10  FILLER          PIC X(14)       VALUE 'Greens'.
+000249C                10  FILLER          PIC X(14)       VALUE 'Grove'.
+000250C                10  FILLER          PIC X(14)       VALUE 'Groves'.
+000251C                10  FILLER          PIC X(14)       VALUE 'Harbor'.
+000252C                10  FILLER          PIC X(14)       VALUE 'Harbors'.
+000253C                10  FILLER          PIC X(14)       VALUE 'Haven'.
+000254C                10  FILLER          PIC X(14)       VALUE 'Heights'.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0012
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000255C                10  FILLER          PIC X(14)       VALUE 'Highway'.
+000256C                10  FILLER          PIC X(14)       VALUE 'Hill'.
+000257C                10  FILLER          PIC X(14)       VALUE 'Hills'.
+000258C                10  FILLER          PIC X(14)       VALUE 'Hollow'.
+000259C                10  FILLER          PIC X(14)       VALUE 'Inlet'.
+000260C                10  FILLER          PIC X(14)       VALUE 'Inlet'.
+000261C                10  FILLER          PIC X(14)       VALUE 'Island'.
+000262C                10  FILLER          PIC X(14)       VALUE 'Island'.
+000263C                10  FILLER          PIC X(14)       VALUE 'Islands'.
+000264C                10  FILLER          PIC X(14)       VALUE 'Islands'.
+000265C                10  FILLER          PIC X(14)       VALUE 'Isle'.
+000266C                10  FILLER          PIC X(14)       VALUE 'Isle'.
+000267C                10  FILLER          PIC X(14)       VALUE 'Junction'.
+000268C                10  FILLER          PIC X(14)       VALUE 'Junctions'.
+000269C                10  FILLER          PIC X(14)       VALUE 'Key'.
+000270C                10  FILLER          PIC X(14)       VALUE 'Keys'.
+000271C                10  FILLER          PIC X(14)       VALUE 'Knoll'.
+000272C                10  FILLER          PIC X(14)       VALUE 'Knolls'.
+000273C                10  FILLER          PIC X(14)       VALUE 'Lake'.
+000274C                10  FILLER          PIC X(14)       VALUE 'Lakes'.
+000275C                10  FILLER          PIC X(14)       VALUE 'Land'.
+000276C                10  FILLER          PIC X(14)       VALUE 'Landing'.
+000277C                10  FILLER          PIC X(14)       VALUE 'Lane'.
+000278C                10  FILLER          PIC X(14)       VALUE 'Light'.
+000279C                10  FILLER          PIC X(14)       VALUE 'Lights'.
+000280C                10  FILLER          PIC X(14)       VALUE 'Loaf'.
+000281C                10  FILLER          PIC X(14)       VALUE 'Lock'.
+000282C                10  FILLER          PIC X(14)       VALUE 'Locks'.
+000283C                10  FILLER          PIC X(14)       VALUE 'Locks'.
+000284C                10  FILLER          PIC X(14)       VALUE 'Lodge'.
+000285C                10  FILLER          PIC X(14)       VALUE 'Lodge'.
+000286C                10  FILLER          PIC X(14)       VALUE 'Loop'.
+000287C                10  FILLER          PIC X(14)       VALUE 'Mall'.
+000288C                10  FILLER          PIC X(14)       VALUE 'Manor'.
+000289C                10  FILLER          PIC X(14)       VALUE 'Manors'.
+000290C                10  FILLER          PIC X(14)       VALUE 'Meadow'.
+000291C                10  FILLER          PIC X(14)       VALUE 'Meadows'.
+000292C                10  FILLER          PIC X(14)       VALUE 'Mews'.
+000293C                10  FILLER          PIC X(14)       VALUE 'Mill'.
+000294C                10  FILLER          PIC X(14)       VALUE 'Mills'.
+000295C                10  FILLER          PIC X(14)       VALUE 'Mission'.
+000296C                10  FILLER          PIC X(14)       VALUE 'Mission'.
+000297C                10  FILLER          PIC X(14)       VALUE 'Motorway'.
+000298C                10  FILLER          PIC X(14)       VALUE 'Mount'.
+000299C                10  FILLER          PIC X(14)       VALUE 'Mountain'.
+000300C                10  FILLER          PIC X(14)       VALUE 'Mountain'.
+000301C                10  FILLER          PIC X(14)       VALUE 'Mountains'.
+000302C                10  FILLER          PIC X(14)       VALUE 'Mountains'.
+000303C                10  FILLER          PIC X(14)       VALUE 'Neck'.
+000304C                10  FILLER          PIC X(14)       VALUE 'Orchard'.
+000305C                10  FILLER          PIC X(14)       VALUE 'Oval'.
+000306C                10  FILLER          PIC X(14)       VALUE 'Overpass'.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0013
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000307C                10  FILLER          PIC X(14)       VALUE 'Park'.
+000308C                10  FILLER          PIC X(14)       VALUE 'Parks'.
+000309C                10  FILLER          PIC X(14)       VALUE 'Parkway'.
+000310C                10  FILLER          PIC X(14)       VALUE 'Parkways'.
+000311C                10  FILLER          PIC X(14)       VALUE 'Pass'.
+000312C                10  FILLER          PIC X(14)       VALUE 'Passage'.
+000313C                10  FILLER          PIC X(14)       VALUE 'Path'.
+000314C                10  FILLER          PIC X(14)       VALUE 'Pike'.
+000315C                10  FILLER          PIC X(14)       VALUE 'Pine'.
+000316C                10  FILLER          PIC X(14)       VALUE 'Pines'.
+000317C                10  FILLER          PIC X(14)       VALUE 'Place'.
+000318C                10  FILLER          PIC X(14)       VALUE 'Plain'.
+000319C                10  FILLER          PIC X(14)       VALUE 'Plains'.
+000320C                10  FILLER          PIC X(14)       VALUE 'Plains'.
+000321C                10  FILLER          PIC X(14)       VALUE 'Plaza'.
+000322C                10  FILLER          PIC X(14)       VALUE 'Plaza'.
+000323C                10  FILLER          PIC X(14)       VALUE 'Point'.
+000324C                10  FILLER          PIC X(14)       VALUE 'Points'.
+000325C                10  FILLER          PIC X(14)       VALUE 'Port'.
+000326C                10  FILLER          PIC X(14)       VALUE 'Port'.
+000327C                10  FILLER          PIC X(14)       VALUE 'Ports'.
+000328C                10  FILLER          PIC X(14)       VALUE 'Ports'.
+000329C                10  FILLER          PIC X(14)       VALUE 'Prairie'.
+000330C                10  FILLER          PIC X(14)       VALUE 'Prairie'.
+000331C                10  FILLER          PIC X(14)       VALUE 'Radial'.
+000332C                10  FILLER          PIC X(14)       VALUE 'Ramp'.
+000333C                10  FILLER          PIC X(14)       VALUE 'Ranch'.
+000334C                10  FILLER          PIC X(14)       VALUE 'Rapid'.
+000335C                10  FILLER          PIC X(14)       VALUE 'Rapids'.
+000336C                10  FILLER          PIC X(14)       VALUE 'Rest'.
+000337C                10  FILLER          PIC X(14)       VALUE 'Ridge'.
+000338C                10  FILLER          PIC X(14)       VALUE 'Ridges'.
+000339C                10  FILLER          PIC X(14)       VALUE 'River'.
+000340C                10  FILLER          PIC X(14)       VALUE 'Road'.
+000341C                10  FILLER          PIC X(14)       VALUE 'Road'.
+000342C                10  FILLER          PIC X(14)       VALUE 'Roads'.
+000343C                10  FILLER          PIC X(14)       VALUE 'Roads'.
+000344C                10  FILLER          PIC X(14)       VALUE 'Route'.
+000345C                10  FILLER          PIC X(14)       VALUE 'Row'.
+000346C                10  FILLER          PIC X(14)       VALUE 'Rue'.
+000347C                10  FILLER          PIC X(14)       VALUE 'Run'.
+000348C                10  FILLER          PIC X(14)       VALUE 'Shoal'.
+000349C                10  FILLER          PIC X(14)       VALUE 'Shoals'.
+000350C                10  FILLER          PIC X(14)       VALUE 'Shore'.
+000351C                10  FILLER          PIC X(14)       VALUE 'Shores'.
+000352C                10  FILLER          PIC X(14)       VALUE 'Skyway'.
+000353C                10  FILLER          PIC X(14)       VALUE 'Spring'.
+000354C                10  FILLER          PIC X(14)       VALUE 'Springs'.
+000355C                10  FILLER          PIC X(14)       VALUE 'Springs'.
+000356C                10  FILLER          PIC X(14)       VALUE 'Spur'.
+000357C                10  FILLER          PIC X(14)       VALUE 'Spurs'.
+000358C                10  FILLER          PIC X(14)       VALUE 'Square'.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0014
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000359C                10  FILLER          PIC X(14)       VALUE 'Square'.
+000360C                10  FILLER          PIC X(14)       VALUE 'Squares'.
+000361C                10  FILLER          PIC X(14)       VALUE 'Squares'.
+000362C                10  FILLER          PIC X(14)       VALUE 'Station'.
+000363C                10  FILLER          PIC X(14)       VALUE 'Station'.
+000364C                10  FILLER          PIC X(14)       VALUE 'Stravenue'.
+000365C                10  FILLER          PIC X(14)       VALUE 'Stravenue'.
+000366C                10  FILLER          PIC X(14)       VALUE 'Stream'.
+000367C                10  FILLER          PIC X(14)       VALUE 'Stream'.
+000368C                10  FILLER          PIC X(14)       VALUE 'Street'.
+000369C                10  FILLER          PIC X(14)       VALUE 'Street'.
+000370C                10  FILLER          PIC X(14)       VALUE 'Streets'.
+000371C                10  FILLER          PIC X(14)       VALUE 'Summit'.
+000372C                10  FILLER          PIC X(14)       VALUE 'Summit'.
+000373C                10  FILLER          PIC X(14)       VALUE 'Terrace'.
+000374C                10  FILLER          PIC X(14)       VALUE 'Throughway'.
+000375C                10  FILLER          PIC X(14)       VALUE 'Trace'.
+000376C                10  FILLER          PIC X(14)       VALUE 'Track'.
+000377C                10  FILLER          PIC X(14)       VALUE 'Trafficway'.
+000378C                10  FILLER          PIC X(14)       VALUE 'Trail'.
+000379C                10  FILLER          PIC X(14)       VALUE 'Trail'.
+000380C                10  FILLER          PIC X(14)       VALUE 'Tunnel'.
+000381C                10  FILLER          PIC X(14)       VALUE 'Tunnel'.
+000382C                10  FILLER          PIC X(14)       VALUE 'Turnpike'.
+000383C                10  FILLER          PIC X(14)       VALUE 'Turnpike'.
+000384C                10  FILLER          PIC X(14)       VALUE 'Underpass'.
+000385C                10  FILLER          PIC X(14)       VALUE 'Union'.
+000386C                10  FILLER          PIC X(14)       VALUE 'Unions'.
+000387C                10  FILLER          PIC X(14)       VALUE 'Valley'.
+000388C                10  FILLER          PIC X(14)       VALUE 'Valleys'.
+000389C                10  FILLER          PIC X(14)       VALUE 'Via'.
+000390C                10  FILLER          PIC X(14)       VALUE 'Viaduct'.
+000391C                10  FILLER          PIC X(14)       VALUE 'View'.
+000392C                10  FILLER          PIC X(14)       VALUE 'Views'.
+000393C                10  FILLER          PIC X(14)       VALUE 'Village'.
+000394C                10  FILLER          PIC X(14)       VALUE 'Village'.
+000395C                10  FILLER          PIC X(14)       VALUE 'Villages'.
+000396C                10  FILLER          PIC X(14)       VALUE 'Ville'.
+000397C                10  FILLER          PIC X(14)       VALUE 'Vista'.
+000398C                10  FILLER          PIC X(14)       VALUE 'Vista'.
+000399C                10  FILLER          PIC X(14)       VALUE 'Walk'.
+000400C                10  FILLER          PIC X(14)       VALUE 'Walks'.
+000401C                10  FILLER          PIC X(14)       VALUE 'Wall'.
+000402C                10  FILLER          PIC X(14)       VALUE 'Way'.
+000403C                10  FILLER          PIC X(14)       VALUE 'Ways'.
+000404C                10  FILLER          PIC X(14)       VALUE 'Well'.
+000405C                10  FILLER          PIC X(14)       VALUE 'Wells'.
+000406C            05  FILLER REDEFINES STREET-SUFFIX-OCCS.
+000407C                10  FILLER                          OCCURS 225
+000408C                                                    INDEXED SS-DX.
+000409C                    15  STREET-SUFFIX
+000410C                                    PIC X(14).
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0015
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000411C
+000412C        01  SECONDARY-ADDRESS-FORMATS.
+000413C            05  SECONDARY-ADDRESS-FORMAT-CNT
+000414C                                    PIC S9(4)  COMP VALUE 2.
+000415C            05  SECONDARY-ADDRESS-FORMAT-OCCS.
+000416C                10  FILLER          PIC X(14)       VALUE 'Apt %##'.
+000417C                10  FILLER          PIC X(14)       VALUE 'Ste %##'.
+000418C            05  FILLER REDEFINES SECONDARY-ADDRESS-FORMAT-OCCS.
+000419C                10  FILLER                          OCCURS 2
+000420C                                                    INDEXED PF-DX.
+000421C                    15  SECONDARY-ADDRESS-FORMAT
+000422C                                    PIC X(14).
+000423C
+000424C        01  POSTCODE-FORMATS.
+000425C            05  POSTCODE-FORMAT-CNT
+000426C                                    PIC S9(4)  COMP VALUE 2.
+000427C            05  POSTCODE-FORMAT-OCCS.
+000428C                10  FILLER          PIC X(14)       VALUE '#####'.
+000429C                10  FILLER          PIC X(14)       VALUE '#####-####'.
+000430C            05  FILLER REDEFINES POSTCODE-FORMAT-OCCS.
+000431C                10  FILLER                          OCCURS 2
+000432C                                                    INDEXED PF-DX.
+000433C                    15  POSTCODE-FORMAT
+000434C                                    PIC X(14).
+000435C
+000436C        01  STATES.
+000437C            05  STATE-CNT           PIC S9(4)  COMP VALUE 50.
+000438C            05  STATE-OCCS.
+000439C                10  FILLER          PIC X(14)     VALUE 'Alabama'.
+000440C                10  FILLER          PIC X(14)     VALUE 'Alaska'.
+000441C                10  FILLER          PIC X(14)     VALUE 'Arizona'.
+000442C                10  FILLER          PIC X(14)     VALUE 'Arkansas'.
+000443C                10  FILLER          PIC X(14)     VALUE 'California'.
+000444C                10  FILLER          PIC X(14)     VALUE 'Colorado'.
+000445C                10  FILLER          PIC X(14)     VALUE 'Connecticut'.
+000446C                10  FILLER          PIC X(14)     VALUE 'Delaware'.
+000447C                10  FILLER          PIC X(14)     VALUE 'Florida'.
+000448C                10  FILLER          PIC X(14)     VALUE 'Georgia'.
+000449C                10  FILLER          PIC X(14)     VALUE 'Hawaii'.
+000450C                10  FILLER          PIC X(14)     VALUE 'Idaho'.
+000451C                10  FILLER          PIC X(14)     VALUE 'Illinois'.
+000452C                10  FILLER          PIC X(14)     VALUE 'Indiana'.
+000453C                10  FILLER          PIC X(14)     VALUE 'Iowa'.
+000454C                10  FILLER          PIC X(14)     VALUE 'Kansas'.
+000455C                10  FILLER          PIC X(14)     VALUE 'Kentucky'.
+000456C                10  FILLER          PIC X(14)     VALUE 'Louisiana'.
+000457C                10  FILLER          PIC X(14)     VALUE 'Maine'.
+000458C                10  FILLER          PIC X(14)     VALUE 'Maryland'.
+000459C                10  FILLER          PIC X(14)     VALUE 'Massachusetts'.
+000460C                10  FILLER          PIC X(14)     VALUE 'Michigan'.
+000461C                10  FILLER          PIC X(14)     VALUE 'Minnesota'.
+000462C                10  FILLER          PIC X(14)     VALUE 'Mississippi'.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0016
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000463C                10  FILLER          PIC X(14)     VALUE 'Missouri'.
+000464C                10  FILLER          PIC X(14)     VALUE 'Montana'.
+000465C                10  FILLER          PIC X(14)     VALUE 'Nebraska'.
+000466C                10  FILLER          PIC X(14)     VALUE 'Nevada'.
+000467C                10  FILLER          PIC X(14)     VALUE 'New Hampshire'.
+000468C                10  FILLER          PIC X(14)     VALUE 'New Jersey'.
+000469C                10  FILLER          PIC X(14)     VALUE 'New Mexico'.
+000470C                10  FILLER          PIC X(14)     VALUE 'New York'.
+000471C                10  FILLER          PIC X(14)     VALUE 'North Carolina'.
+000472C                10  FILLER          PIC X(14)     VALUE 'North Dakota'.
+000473C                10  FILLER          PIC X(14)     VALUE 'Ohio'.
+000474C                10  FILLER          PIC X(14)     VALUE 'Oklahoma'.
+000475C                10  FILLER          PIC X(14)     VALUE 'Oregon'.
+000476C                10  FILLER          PIC X(14)     VALUE 'Pennsylvania'.
+000477C                10  FILLER          PIC X(14)     VALUE 'Rhode Island'.
+000478C                10  FILLER          PIC X(14)     VALUE 'South Carolina'.
+000479C                10  FILLER          PIC X(14)     VALUE 'South Dakota'.
+000480C                10  FILLER          PIC X(14)     VALUE 'Tennessee'.
+000481C                10  FILLER          PIC X(14)     VALUE 'Texas'.
+000482C                10  FILLER          PIC X(14)     VALUE 'Utah'.
+000483C                10  FILLER          PIC X(14)     VALUE 'Vermont'.
+000484C                10  FILLER          PIC X(14)     VALUE 'Virginia'.
+000485C                10  FILLER          PIC X(14)     VALUE 'Washington'.
+000486C                10  FILLER          PIC X(14)     VALUE 'West Virginia'.
+000487C                10  FILLER          PIC X(14)     VALUE 'Wisconsin'.
+000488C                10  FILLER          PIC X(14)     VALUE 'Wyoming'.
+000489C            05  FILLER REDEFINES STATE-OCCS.
+000490C                10  FILLER                          OCCURS 50
+000491C                                                    INDEXED ST-DX.
+000492C                    15  STATE       PIC X(14).
+000493C
+000494C        01  STATES-ABBR.
+000495C            05  STATE-ABBR-CNT      PIC S9(4)  COMP VALUE 51.
+000496C            05  STATE-ABBR-OCCS.
+000497C                10  FILLER          PIC X(14)       VALUE 'AL'.
+000498C                10  FILLER          PIC X(14)       VALUE 'AK'.
+000499C                10  FILLER          PIC X(14)       VALUE 'AZ'.
+000500C                10  FILLER          PIC X(14)       VALUE 'AR'.
+000501C                10  FILLER          PIC X(14)       VALUE 'CA'.
+000502C                10  FILLER          PIC X(14)       VALUE 'CO'.
+000503C                10  FILLER          PIC X(14)       VALUE 'CT'.
+000504C                10  FILLER          PIC X(14)       VALUE 'DE'.
+000505C                10  FILLER          PIC X(14)       VALUE 'DC'.
+000506C                10  FILLER          PIC X(14)       VALUE 'FL'.
+000507C                10  FILLER          PIC X(14)       VALUE 'GA'.
+000508C                10  FILLER          PIC X(14)       VALUE 'HI'.
+000509C                10  FILLER          PIC X(14)       VALUE 'ID'.
+000510C                10  FILLER          PIC X(14)       VALUE 'IL'.
+000511C                10  FILLER          PIC X(14)       VALUE 'IN'.
+000512C                10  FILLER          PIC X(14)       VALUE 'IA'.
+000513C                10  FILLER          PIC X(14)       VALUE 'KS'.
+000514C                10  FILLER          PIC X(14)       VALUE 'KY'.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0017
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000515C                10  FILLER          PIC X(14)       VALUE 'LA'.
+000516C                10  FILLER          PIC X(14)       VALUE 'ME'.
+000517C                10  FILLER          PIC X(14)       VALUE 'MD'.
+000518C                10  FILLER          PIC X(14)       VALUE 'MA'.
+000519C                10  FILLER          PIC X(14)       VALUE 'MI'.
+000520C                10  FILLER          PIC X(14)       VALUE 'MN'.
+000521C                10  FILLER          PIC X(14)       VALUE 'MS'.
+000522C                10  FILLER          PIC X(14)       VALUE 'MO'.
+000523C                10  FILLER          PIC X(14)       VALUE 'MT'.
+000524C                10  FILLER          PIC X(14)       VALUE 'NE'.
+000525C                10  FILLER          PIC X(14)       VALUE 'NV'.
+000526C                10  FILLER          PIC X(14)       VALUE 'NH'.
+000527C                10  FILLER          PIC X(14)       VALUE 'NJ'.
+000528C                10  FILLER          PIC X(14)       VALUE 'NM'.
+000529C                10  FILLER          PIC X(14)       VALUE 'NY'.
+000530C                10  FILLER          PIC X(14)       VALUE 'NC'.
+000531C                10  FILLER          PIC X(14)       VALUE 'ND'.
+000532C                10  FILLER          PIC X(14)       VALUE 'OH'.
+000533C                10  FILLER          PIC X(14)       VALUE 'OK'.
+000534C                10  FILLER          PIC X(14)       VALUE 'OR'.
+000535C                10  FILLER          PIC X(14)       VALUE 'PA'.
+000536C                10  FILLER          PIC X(14)       VALUE 'RI'.
+000537C                10  FILLER          PIC X(14)       VALUE 'SC'.
+000538C                10  FILLER          PIC X(14)       VALUE 'SD'.
+000539C                10  FILLER          PIC X(14)       VALUE 'TN'.
+000540C                10  FILLER          PIC X(14)       VALUE 'TX'.
+000541C                10  FILLER          PIC X(14)       VALUE 'UT'.
+000542C                10  FILLER          PIC X(14)       VALUE 'VT'.
+000543C                10  FILLER          PIC X(14)       VALUE 'VA'.
+000544C                10  FILLER          PIC X(14)       VALUE 'WA'.
+000545C                10  FILLER          PIC X(14)       VALUE 'WV'.
+000546C                10  FILLER          PIC X(14)       VALUE 'WI'.
+000547C                10  FILLER          PIC X(14)       VALUE 'WY'.
+000548C            05  FILLER REDEFINES STATE-ABBR-OCCS.
+000549C                10  FILLER                          OCCURS 51
+000550C                                                    INDEXED SA-DX.
+000551C                    15  STATE-ABBR  PIC X(14).
+000552C
+000553C
+000554C        01  STATES-POSTCODE.
+000555C            05  STATE-POSTCODE-CNT  PIC S9(4)  COMP VALUE 51.
+000556C            05  STATE-POSTCODE-OCCS.
+000557C                10  FILLER          PIC X(14)     VALUE 'AL 35004 36925'.
+000558C                10  FILLER          PIC X(14)     VALUE 'AK 99501 99950'.
+000559C                10  FILLER          PIC X(14)     VALUE 'AZ 85001 86556'.
+000560C                10  FILLER          PIC X(14)     VALUE 'AR 71601 72959'.
+000561C                10  FILLER          PIC X(14)     VALUE 'CA 90001 96162'.
+000562C                10  FILLER          PIC X(14)     VALUE 'CO 80001 81658'.
+000563C                10  FILLER          PIC X(14)     VALUE 'CT 06001 06389'.
+000564C                10  FILLER          PIC X(14)     VALUE 'DE 19701 19980'.
+000565C                10  FILLER          PIC X(14)     VALUE 'DC 20001 20039'.
+000566C                10  FILLER          PIC X(14)     VALUE 'FL 32004 34997'.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0018
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000567C                10  FILLER          PIC X(14)     VALUE 'GA 30001 31999'.
+000568C                10  FILLER          PIC X(14)     VALUE 'HI 96701 96898'.
+000569C                10  FILLER          PIC X(14)     VALUE 'ID 83201 83876'.
+000570C                10  FILLER          PIC X(14)     VALUE 'IL 60001 62999'.
+000571C                10  FILLER          PIC X(14)     VALUE 'IN 46001 47997'.
+000572C                10  FILLER          PIC X(14)     VALUE 'IA 50001 52809'.
+000573C                10  FILLER          PIC X(14)     VALUE 'KS 66002 67954'.
+000574C                10  FILLER          PIC X(14)     VALUE 'KY 40003 42788'.
+000575C                10  FILLER          PIC X(14)     VALUE 'LA 70001 71232'.
+000576C                10  FILLER          PIC X(14)     VALUE 'ME 03901 04992'.
+000577C                10  FILLER          PIC X(14)     VALUE 'MD 20331 20331'.
+000578C                10  FILLER          PIC X(14)     VALUE 'MA 01001 02791'.
+000579C                10  FILLER          PIC X(14)     VALUE 'MI 48001 49971'.
+000580C                10  FILLER          PIC X(14)     VALUE 'MN 55001 56763'.
+000581C                10  FILLER          PIC X(14)     VALUE 'MS 38601 39776'.
+000582C                10  FILLER          PIC X(14)     VALUE 'MO 63001 65899'.
+000583C                10  FILLER          PIC X(14)     VALUE 'MT 59001 59937'.
+000584C                10  FILLER          PIC X(14)     VALUE 'NE 68001 68118'.
+000585C                10  FILLER          PIC X(14)     VALUE 'NV 88901 89883'.
+000586C                10  FILLER          PIC X(14)     VALUE 'NH 03031 03897'.
+000587C                10  FILLER          PIC X(14)     VALUE 'NJ 07001 08989'.
+000588C                10  FILLER          PIC X(14)     VALUE 'NM 87001 88441'.
+000589C                10  FILLER          PIC X(14)     VALUE 'NY 10001 14905'.
+000590C                10  FILLER          PIC X(14)     VALUE 'NC 27006 28909'.
+000591C                10  FILLER          PIC X(14)     VALUE 'ND 58001 58856'.
+000592C                10  FILLER          PIC X(14)     VALUE 'OH 43001 45999'.
+000593C                10  FILLER          PIC X(14)     VALUE 'OK 73001 73199'.
+000594C                10  FILLER          PIC X(14)     VALUE 'OR 97001 97920'.
+000595C                10  FILLER          PIC X(14)     VALUE 'PA 15001 19640'.
+000596C                10  FILLER          PIC X(14)     VALUE 'RI 02801 02940'.
+000597C                10  FILLER          PIC X(14)     VALUE 'SC 29001 29948'.
+000598C                10  FILLER          PIC X(14)     VALUE 'SD 57001 57799'.
+000599C                10  FILLER          PIC X(14)     VALUE 'TN 37010 38589'.
+000600C                10  FILLER          PIC X(14)     VALUE 'TX 73301 73301'.
+000601C                10  FILLER          PIC X(14)     VALUE 'UT 84001 84784'.
+000602C                10  FILLER          PIC X(14)     VALUE 'VT 05001 05495'.
+000603C                10  FILLER          PIC X(14)     VALUE 'VA 20040 20041'.
+000604C                10  FILLER          PIC X(14)     VALUE 'WA 98001 99403'.
+000605C                10  FILLER          PIC X(14)     VALUE 'WV 24701 26886'.
+000606C                10  FILLER          PIC X(14)     VALUE 'WI 53001 54990'.
+000607C                10  FILLER          PIC X(14)     VALUE 'WY 82001 83128'.
+000608C            05  FILLER REDEFINES STATE-POSTCODE-OCCS.
+000609C                10  FILLER                          OCCURS 51
+000610C                                                    INDEXED SP-DX.
+000611C                    15  STATE-ABBR-PC
+000612C                                    PIC X(2).
+000613C                    15  FILLER      PIC X.
+000614C                    15  STATE-POSTCODE-MIN
+000615C                                    PIC 9(5).
+000616C                    15  FILLER      PIC X.
+000617C                    15  STATE-POSTCODE-MAX
+000618C                                    PIC 9(5).
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0019
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000619C
+000620C        01  TERRITORIES-ABBR.
+000621C            05  TERRITORY-ABBR-CNT  PIC S9(4)  COMP VALUE 8.
+000622C            05  TERRITORY-ABBR-OCCS.
+000623C                10  FILLER          PIC X(14)       VALUE 'AS'.
+000624C                10  FILLER          PIC X(14)       VALUE 'FM'.
+000625C                10  FILLER          PIC X(14)       VALUE 'GU'.
+000626C                10  FILLER          PIC X(14)       VALUE 'MH'.
+000627C                10  FILLER          PIC X(14)       VALUE 'MP'.
+000628C                10  FILLER          PIC X(14)       VALUE 'PW'.
+000629C                10  FILLER          PIC X(14)       VALUE 'PR'.
+000630C                10  FILLER          PIC X(14)       VALUE 'VI'.
+000631C            05  FILLER REDEFINES TERRITORY-ABBR-OCCS.
+000632C                10  FILLER                          OCCURS 8
+000633C                                                    INDEXED TA-DX.
+000634C                    15  TERRITORY-ABBR
+000635C                                    PIC X(14).
+000636C
+000637C        01  MILITARY-STATES-ABBR.
+000638C            05  MILITARY-STATE-ABBR-CNT
+000639C                                    PIC S9(4)  COMP VALUE 3.
+000640C            05  MILITARY-STATE-ABBR-OCCS.
+000641C                10  FILLER          PIC X(14)       VALUE 'AA'.
+000642C                10  FILLER          PIC X(14)       VALUE 'AE'.
+000643C                10  FILLER          PIC X(14)       VALUE 'AP'.
+000644C            05  FILLER REDEFINES MILITARY-STATE-ABBR-OCCS.
+000645C                10  FILLER                          OCCURS 3
+000646C                                                    INDEXED MSA-DX.
+000647C                    15  MILITARY-STATE-ABBR
+000648C                                    PIC X(14).
+000649C
+000650C        01  MILITARY-SHIP-PREFIXES.
+000651C            05  MILITARY-SHIP-PREFIX-CNT
+000652C                                    PIC S9(4)  COMP VALUE 4.
+000653C            05  MILITARY-SHIP-PREFIX-OCCS.
+000654C                10  FILLER          PIC X(14)       VALUE 'USS'.
+000655C                10  FILLER          PIC X(14)       VALUE 'USNS'.
+000656C                10  FILLER          PIC X(14)       VALUE 'USNV'.
+000657C                10  FILLER          PIC X(14)       VALUE 'USCGC'.
+000658C            05  FILLER REDEFINES MILITARY-SHIP-PREFIX-OCCS.
+000659C                10  FILLER                          OCCURS 4
+000660C                                                    INDEXED MSP-DX.
+000661C                    15  MILITARY-SHIP-PREFIX
+000662C                                    PIC X(14).
+000663C
+000664C        01  MILITARY-APO-FORMATS.
+000665C            05  MILITARY-APO-FORMAT-CNT
+000666C                                    PIC S9(4)  COMP VALUE 2.
+000667C            05  MILITARY-APO-FORMAT-OCCS.
+000668C                10  FILLER          PIC X(14)       VALUE 'PSC %###'.
+000669C                10  FILLER          PIC X(14)       VALUE 'Box %###'.
+000670C            05  FILLER REDEFINES MILITARY-APO-FORMAT-OCCS.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0020
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000671C                10  FILLER                          OCCURS 2
+000672C                                                    INDEXED MAF-DX.
+000673C                    15  MILITARY-APO-FORMAT
+000674C                                    PIC X(14).
+000675C
+000676C        01  MILITARY-DPO-FORMATS.
+000677C            05  MILITARY-DPO-FORMAT-CNT
+000678C                                    PIC S9(4)  COMP VALUE 2.
+000679C            05  MILITARY-DPO-FORMAT-OCCS.
+000680C                10  FILLER          PIC X(14)       VALUE 'Unit %###'.
+000681C                10  FILLER          PIC X(14)       VALUE 'Box %###'.
+000682C            05  FILLER REDEFINES MILITARY-DPO-FORMAT-OCCS.
+000683C                10  FILLER                          OCCURS 2
+000684C                                                    INDEXED MDF-DX.
+000685C                    15  MILITARY-DPO-FORMAT
+000686C                                    PIC X(14).
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0021
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000060        /
+000061         LINKAGE SECTION.
+000062        *----------------
+000063
+000064         01  L-PARAMETER.            COPY FAKERLNK.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C       **** Input fields:
+000012C       ****     FAKER-PROVIDER-FUNCTION:
+000013C       ****         Set appropriate 88 level for  desired function.
+000014C       ****     FAKER-SEED-NO:
+000015C       ****         If > 0, used to set seed to get same random
+000016C       ****         sequence on each call.
+000017C       ****     FAKER-SEED-TEXT:
+000018C       ****         If FAKER-SEED-NO = 0 and this is not spaces, used to
+000019C       ****         set seed to get same random sequence on each call
+000020C       ****         (e.g. to get same fake name each time real name is
+000021C       ****         being anonymized, move real name to FAKER-SEED-TEXT
+000022C       ****         before call).
+000023C
+000024C            05  FAKER-PROVIDER-FUNCTION
+000025C                                    PIC X(30).
+000026C                88  ADDRESS-ADDRESS                 VALUE
+000027C                                    'ADDRESS-ADDRESS'.
+000028C                88  ADDRESS-BUILDING-NO             VALUE
+000029C                                    'ADDRESS-BUILDING-NO'.
+000030C                88  ADDRESS-CITY                    VALUE
+000031C                                    'ADDRESS-CITY'.
+000032C                88  ADDRESS-CITY-PREFIX             VALUE
+000033C                                    'ADDRESS-CITY-PREFIX'.
+000034C                88  ADDRESS-CITY-SUFFIX             VALUE
+000035C                                    'ADDRESS-CITY-SUFFIX'.
+000036C                88  ADDRESS-MILITARY-APO            VALUE
+000037C                                    'ADDRESS-MILITARY-APO'.
+000038C                88  ADDRESS-MILITARY-DPO            VALUE
+000039C                                    'ADDRESS-MILITARY-DPO'.
+000040C                88  ADDRESS-MILITARY-SHIP-PREFIX    VALUE
+000041C                                    'ADDRESS-MILITARY-SHIP-PREFIX'.
+000042C                88  ADDRESS-MILITARY-STATE-ABBR     VALUE
+000043C                                    'ADDRESS-MILITARY-STATE-ABBR'.
+000044C                88  ADDRESS-POSTCODE                VALUE
+000045C                                    'ADDRESS-POSTCODE'.
+000046C                88  ADDRESS-SECONDARY-ADDRESS       VALUE
+000047C                                    'ADDRESS-SECONDARY-ADDRESS'.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0022
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000048C                88  ADDRESS-STATE                   VALUE
+000049C                                    'ADDRESS-STATE'.
+000050C                88  ADDRESS-STATE-ABBR              VALUE
+000051C                                    'ADDRESS-STATE-ABBR'.
+000052C                88  ADDRESS-STATE-POSTCODE          VALUE
+000053C                                    'ADDRESS-STATE-POSTCODE'.
+000054C                88  ADDRESS-STREET-ADDRESS          VALUE
+000055C                                    'ADDRESS-STREET-ADDRESS'.
+000056C                88  ADDRESS-STREET-NAME             VALUE
+000057C                                    'ADDRESS-STREET-NAME'.
+000058C                88  ADDRESS-STREET-SUFFIX           VALUE
+000059C                                    'ADDRESS-STREET-SUFFIX'.
+000060C                88  ADDRESS-TERRITORY-ABBR          VALUE
+000061C                                    'ADDRESS-TERRITORY-ABBR'.
+000062C                88  COMPANY-COMPANY                 VALUE
+000063C                                    'COMPANY-COMPANY'.
+000064C                88  COMPANY-SUFFIX                  VALUE
+000065C                                    'COMPANY-SUFFIX'.
+000066C                88  PERSON-FIRST-NAME               VALUE
+000067C                                    'PERSON-FIRST-NAME'.
+000068C                88  PERSON-FIRST-NAME-MALE          VALUE
+000069C                                    'PERSON-FIRST-NAME-MALE'.
+000070C                88  PERSON-FIRST-NAME-FEMALE        VALUE
+000071C                                    'PERSON-FIRST-NAME-FEMALE'.
+000072C                88  PERSON-LAST-NAME                VALUE
+000073C                                    'PERSON-LAST-NAME'.
+000074C                88  PERSON-LAST-NAME-MALE           VALUE
+000075C                                    'PERSON-LAST-NAME-MALE'.
+000076C                88  PERSON-LAST-NAME-FEMALE         VALUE
+000077C                                    'PERSON-LAST-NAME-FEMALE'.
+000078C                88  PERSON-NAME                     VALUE
+000079C                                    'PERSON-NAME'.
+000080C                88  PERSON-NAME-MALE                VALUE
+000081C                                    'PERSON-NAME-MALE'.
+000082C                88  PERSON-NAME-FEMALE              VALUE
+000083C                                    'PERSON-NAME-FEMALE'.
+000084C                88  PERSON-PREFIX                   VALUE
+000085C                                    'PERSON-PREFIX'.
+000086C                88  PERSON-PREFIX-MALE              VALUE
+000087C                                    'PERSON-PREFIX-MALE'.
+000088C                88  PERSON-PREFIX-FEMALE            VALUE
+000089C                                    'PERSON-PREFIX-FEMALE'.
+000090C                88  PERSON-SUFFIX                   VALUE
+000091C                                    'PERSON-SUFFIX'.
+000092C                88  PERSON-SUFFIX-MALE              VALUE
+000093C                                    'PERSON-SUFFIX-MALE'.
+000094C                88  PERSON-SUFFIX-FEMALE            VALUE
+000095C                                    'PERSON-SUFFIX-FEMALE'.
+000096C                88  TAXID-EIN                       VALUE
+000097C                                    'TAXID-EIN'.
+000098C                88  TAXID-EIN-HYPHEN                VALUE
+000099C                                    'TAXID-EIN-HYPHEN'.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0023
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000100C                88  TAXID-ITIN                      VALUE
+000101C                                    'TAXID-ITIN'.
+000102C                88  TAXID-ITIN-HYPHEN               VALUE
+000103C                                    'TAXID-ITIN-HYPHEN'.
+000104C                88  TAXID-SSN                       VALUE
+000105C                                    'TAXID-SSN'.
+000106C                88  TAXID-SSN-HYPHEN                VALUE
+000107C                                    'TAXID-SSN-HYPHEN'.
+000108C
+000109C            05  FAKER-SEED-NO       PIC 9(9)   COMP VALUE 0.
+000110C
+000111C            05  FAKER-SEED-TEXT     PIC X(80)       VALUE SPACES.
+000112C
+000113C       **** Output fields:
+000114C       ****     FAKER-RESPONSE-CODE
+000115C       ****         Use 88 levels to determine result of calls.
+000116C       ****     FAKER-RESPONSE-MSG
+000117C       ****         Non-space if bad response.
+000118C       ****     FAKER-RESULT
+000119C       ****         Returned result of the call.
+000120C       ****     FAKER-RESULT-FIELDS
+000121C       ****         Populated for certain compound results - redefined
+000122C       ****         for address and person fields.
+000123C       ****     FAKER-INFO-CNT
+000124C       ****         Debugging information count.
+000125C       ****     FAKER-INFO-OCCS
+000126C       ****         Debugging information.
+000127C
+000128C            05  FAKER-RESPONSE-CODE PIC 9(4).
+000129C                88  FAKER-RESPONSE-GOOD             VALUE 0.
+000130C                88  FAKER-UNKNOWN-PROVIDER          VALUE 10.
+000131C                88  FAKER-UNKNOWN-FUNCTION          VALUE 20.
+000132C                88  FAKER-UNKNOWN-FORMAT            VALUE 30.
+000133C
+000134C            05  FAKER-RESPONSE-MSG  PIC X(80).
+000135C
+000136C            05  FAKER-RESULT        PIC X(80).
+000137C
+000138C            05  FAKER-RESULT-FIELDS PIC X(80).
+000139C
+000140C       **** These fields are populated only for ADDRESS-ADDRESS calls:
+000141C            05  FAKER-ADDRESS REDEFINES FAKER-RESULT-FIELDS.
+000142C                10  FAKER-ADDRESS-STREET
+000143C                                    PIC X(35).
+000144C                10  FAKER-ADDRESS-CITY
+000145C                                    PIC X(25).
+000146C                10  FAKER-ADDRESS-STATE
+000147C                                    PIC X(10).
+000148C                10  FAKER-ADDRESS-POSTCODE
+000149C                                    PIC X(10).
+000150C
+000151C       **** These fields are populated only for PERSON-NAME,
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0024
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000152C       **** PERSON-NAME-MALE and PERSON-NAME-FEMALE calls:
+000153C            05  FAKER-PERSON REDEFINES FAKER-RESULT-FIELDS.
+000154C                10  FAKER-PERSON-PREFIX
+000155C                                    PIC X(10).
+000156C                10  FAKER-PERSON-FIRST-NAME
+000157C                                    PIC X(25).
+000158C                10  FAKER-PERSON-LAST-NAME
+000159C                                    PIC X(35).
+000160C                10  FAKER-PERSON-SUFFIX
+000161C                                    PIC X(10).
+000162C
+000163C            05  FAKER-INFO-CNT      PIC S9(4)  COMP.
+000164C
+000165C            05  FAKER-INFO-OCCS.
+000166C                10  FAKER-INFO                      OCCURS 20
+000167C                                                    INDEXED FI-DX
+000168C                                                            FI-DX2.
+000169C                    15  FAKER-TABLE PIC X(30).
+000170C                    15  FAKER-RANDOM-NO-SUB
+000171C                                    PIC S9(4)V9(9)
+000172C                                               COMP.
+000173C                    15  FAKER-TABLE-ENTRY
+000174C                                    PIC S9(4)  COMP.
+000175C
+000065
+000066         COPY FAKERLS1.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C        01  L-FORMAT-TABLE-1.
+000012C            05  L-FORMAT-ENTRY-CNT-1
+000013C                                    PIC S9(4)  COMP.
+000014C            05  L-FORMAT-WEIGHT-TOT-1
+000015C                                    PIC S99V9(9)
+000016C                                               COMP.
+000017C            05  L-FORMAT-OCCS-1.
+000018C                10  FILLER                          OCCURS 10
+000019C                                                    INDEXED L-F-DX-1.
+000020C                    15  L-FORMAT-ENTRY-1
+000021C                                    PIC X(32).
+000022C                    15  L-FORMAT-WEIGHT-1
+000023C                                    PIC SV9(9) COMP.
+000024C
+000025C        01  L-FORMAT-TABLE-2.
+000026C            05  L-FORMAT-ENTRY-CNT-2
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0025
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000027C                                    PIC S9(4)  COMP.
+000028C            05  L-FORMAT-WEIGHT-TOT-2
+000029C                                    PIC S99V9(9)
+000030C                                               COMP.
+000031C            05  L-FORMAT-OCCS-2.
+000032C                10  FILLER                          OCCURS 10
+000033C                                                    INDEXED L-F-DX-2.
+000034C                    15  L-FORMAT-ENTRY-2
+000035C                                    PIC X(32).
+000036C                    15  L-FORMAT-WEIGHT-2
+000037C                                    PIC SV9(9) COMP.
+000067
+000068         01  L-ADDRESS-TABLE-1.
+000069             05  L-ADDRESS-ENTRY-CNT-1
+000070                                     PIC S9(4)  COMP.
+000071             05  L-ADDRESS-OCCS-1.
+000072                 10  FILLER                          OCCURS 1000
+000073                                                     INDEXED L-A-DX-1.
+000074                     15  L-ADDRESS-ENTRY-1
+000075                                     PIC X(14).
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0026
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000076        /
+000077         PROCEDURE DIVISION USING L-PARAMETER.
+000078        *==================
+000079
+000080         MAIN.
+000081        *-----
+000082
+000083             PERFORM SUB-1000-START-UP THRU SUB-1000-EXIT
+000084
+000085             PERFORM SUB-2000-PROCESS THRU SUB-2000-EXIT
+000086
+000087             PERFORM SUB-3000-SHUT-DOWN THRU SUB-3000-EXIT
+000088             .
+000089         MAIN-EXIT.
+000090             GOBACK.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0027
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000091        /
+000092         SUB-1000-START-UP.
+000093        *------------------
+000094
+000095             IF      W-NOT-FIRST-CALL
+000096                 GO TO SUB-1000-EXIT
+000097             END-IF
+000098
+000099             SET W-NOT-FIRST-CALL    TO TRUE
+000100             MOVE FUNCTION WHEN-COMPILED
+000101                                     TO W-COMPILED-DATE
+000102
+000103             DISPLAY 'FAKADDR  compiled on '
+000104                 W-COMPILED-DATE-YYYY '/'
+000105                 W-COMPILED-DATE-MM   '/'
+000106                 W-COMPILED-DATE-DD   ' at '
+000107                 W-COMPILED-TIME-HH   ':'
+000108                 W-COMPILED-TIME-MM   ':'
+000109                 W-COMPILED-TIME-SS
+000110
+000111             PERFORM SUB-1100-SUM-WEIGHTS THRU SUB-1100-EXIT
+000112             .
+000113         SUB-1000-EXIT.
+000114             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0028
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000115        /
+000116         SUB-1100-SUM-WEIGHTS.
+000117        *---------------------
+000118
+000119             PERFORM VARYING FC-DX FROM 1 BY 1
+000120                       UNTIL FC-DX > FORMAT-CITY-CNT
+000121                 ADD  FORMAT-CITY-WEIGHT(FC-DX)
+000122                   TO FORMAT-CITY-WEIGHT-TOT
+000123             END-PERFORM
+000124
+000125             PERFORM VARYING FSN-DX FROM 1 BY 1
+000126                       UNTIL FSN-DX > FORMAT-STREET-NAME-CNT
+000127                 ADD  FORMAT-STREET-NAME-WEIGHT(FSN-DX)
+000128                   TO FORMAT-STREET-NAME-WEIGHT-TOT
+000129             END-PERFORM
+000130
+000131             PERFORM VARYING FSA-DX FROM 1 BY 1
+000132                       UNTIL FSA-DX > FORMAT-STREET-ADDR-CNT
+000133                 ADD  FORMAT-STREET-ADDR-WEIGHT(FSA-DX)
+000134                   TO FORMAT-STREET-ADDR-WEIGHT-TOT
+000135             END-PERFORM
+000136
+000137             PERFORM VARYING FA-DX FROM 1 BY 1
+000138                       UNTIL FA-DX > FORMAT-ADDRESS-CNT
+000139                 ADD  FORMAT-ADDRESS-WEIGHT(FA-DX)
+000140                   TO FORMAT-ADDRESS-WEIGHT-TOT
+000141             END-PERFORM
+000142
+000143        D    DISPLAY 'FAKADDR weight totals: '
+000144        D    DISPLAY '    ' FORMAT-CITY-WEIGHT-TOT
+000145        D    DISPLAY '    ' FORMAT-STREET-NAME-WEIGHT-TOT
+000146        D    DISPLAY '    ' FORMAT-STREET-ADDR-WEIGHT-TOT
+000147        D    DISPLAY '    ' FORMAT-ADDRESS-WEIGHT-TOT
+000148             .
+000149         SUB-1100-EXIT.
+000150             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0029
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000151        /
+000152         SUB-2000-PROCESS.
+000153        *-----------------
+000154
+000155             MOVE 0
+000156               TO FAKER-INFO-CNT     IN L-PARAMETER
+000157             MOVE LOW-VALUES
+000158               TO FAKER-INFO-OCCS    IN L-PARAMETER
+000159
+000160             EVALUATE TRUE
+000161               WHEN ADDRESS-ADDRESS  IN L-PARAMETER
+000162                 PERFORM SUB-9010-ADDRESS THRU SUB-9010-EXIT
+000163
+000164               WHEN ADDRESS-BUILDING-NO
+000165                                     IN L-PARAMETER
+000166                 PERFORM SUB-9020-BUILDING-NO THRU SUB-9020-EXIT
+000167
+000168               WHEN ADDRESS-CITY     IN L-PARAMETER
+000169                 PERFORM SUB-9030-CITY THRU SUB-9030-EXIT
+000170
+000171               WHEN ADDRESS-CITY-PREFIX
+000172                                     IN L-PARAMETER
+000173                 PERFORM SUB-9040-CITY-PREFIX THRU SUB-9040-EXIT
+000174
+000175               WHEN ADDRESS-CITY-SUFFIX
+000176                                     IN L-PARAMETER
+000177                 PERFORM SUB-9050-CITY-SUFFIX THRU SUB-9050-EXIT
+000178
+000179               WHEN ADDRESS-MILITARY-APO
+000180                                     IN L-PARAMETER
+000181                 PERFORM SUB-9060-MILITARY-APO THRU SUB-9060-EXIT
+000182
+000183               WHEN ADDRESS-MILITARY-DPO
+000184                                     IN L-PARAMETER
+000185                 PERFORM SUB-9070-MILITARY-DPO THRU SUB-9070-EXIT
+000186
+000187               WHEN ADDRESS-MILITARY-SHIP-PREFIX
+000188                                     IN L-PARAMETER
+000189                 PERFORM SUB-9080-MILITARY-SHIP-PREFIX THRU SUB-9080-EXIT
+000190
+000191               WHEN ADDRESS-MILITARY-STATE-ABBR
+000192                                     IN L-PARAMETER
+000193                 PERFORM SUB-9090-MILITARY-STATE-ABBR THRU SUB-9090-EXIT
+000194
+000195               WHEN ADDRESS-POSTCODE IN L-PARAMETER
+000196                 PERFORM SUB-9100-POSTCODE THRU SUB-9100-EXIT
+000197
+000198               WHEN ADDRESS-SECONDARY-ADDRESS
+000199                                     IN L-PARAMETER
+000200                 PERFORM SUB-9110-SECONDARY-ADDRESS THRU SUB-9110-EXIT
+000201
+000202               WHEN ADDRESS-STATE    IN L-PARAMETER
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0030
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000203                 PERFORM SUB-9120-STATE THRU SUB-9120-EXIT
+000204
+000205               WHEN ADDRESS-STATE-ABBR
+000206                                     IN L-PARAMETER
+000207                 PERFORM SUB-9130-STATE-ABBR THRU SUB-9130-EXIT
+000208
+000209               WHEN ADDRESS-STATE-POSTCODE
+000210                                     IN L-PARAMETER
+000211                 PERFORM SUB-9140-STATE-POSTCODE THRU SUB-9140-EXIT
+000212
+000213               WHEN ADDRESS-STREET-ADDRESS
+000214                                     IN L-PARAMETER
+000215                 PERFORM SUB-9150-STREET-ADDRESS THRU SUB-9150-EXIT
+000216
+000217               WHEN ADDRESS-STREET-NAME
+000218                                     IN L-PARAMETER
+000219                 PERFORM SUB-9160-STREET-NAME THRU SUB-9160-EXIT
+000220
+000221               WHEN ADDRESS-STREET-SUFFIX
+000222                                     IN L-PARAMETER
+000223                 PERFORM SUB-9170-STREET-SUFFIX THRU SUB-9170-EXIT
+000224
+000225               WHEN ADDRESS-TERRITORY-ABBR
+000226                                     IN L-PARAMETER
+000227                 PERFORM SUB-9180-TERRITORY-ABBR THRU SUB-9180-EXIT
+000228
+000229               WHEN OTHER
+000230                 SET  FAKER-UNKNOWN-FUNCTION
+000231                                     IN L-PARAMETER
+000232                                     TO TRUE
+000233                 STRING 'Unknown FAKADDR function "'
+000234                         FAKER-PROVIDER-FUNCTION
+000235                                     IN L-PARAMETER
+000236                         '"'  DELIMITED SIZE
+000237                                   INTO FAKER-RESPONSE-MSG
+000238                                     IN L-PARAMETER
+000239                 GO TO SUB-2000-EXIT
+000240             END-EVALUATE
+000241
+000242             ADD  1
+000243               TO FAKER-INFO-CNT     IN L-PARAMETER
+000244             SET  FI-DX
+000245               TO FAKER-INFO-CNT     IN L-PARAMETER
+000246             MOVE W-TABLE-1
+000247               TO FAKER-TABLE        IN L-PARAMETER(FI-DX)
+000248
+000249             IF      W-TABLE-1(1:8) = 'FORMATS-'
+000250                 PERFORM SUB-2100-FORMAT THRU SUB-2100-EXIT
+000251
+000252                 IF      NOT FAKER-RESPONSE-GOOD
+000253                                     IN L-PARAMETER
+000254                     GO TO SUB-2000-EXIT
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0031
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000255                 END-IF
+000256
+000257                 IF      ADDRESS-ADDRESS
+000258                                     IN L-PARAMETER
+000259                     PERFORM SUB-2200-SEPARATE-FIELDS THRU SUB-2200-EXIT
+000260                 END-IF
+000261             ELSE
+000262                 PERFORM SUB-9800-FIND-RANDOM-ADDRESS THRU SUB-9800-EXIT
+000263
+000264                 MOVE W-FAKER-RESULT
+000265                   TO FAKER-RESULT   IN L-PARAMETER
+000266             END-IF
+000267             .
+000268         SUB-2000-EXIT.
+000269             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0032
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000270        /
+000271         COPY FAKERPD1.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C        SUB-2100-FORMAT.
+000012C       *----------------
+000013C
+000014C            PERFORM SUB-9700-FIND-RANDOM-FORMAT THRU SUB-9700-EXIT
+000015C
+000016C            MOVE W-FAKER-FORMAT     TO W-RECURSED-FORMAT
+000017C            MOVE 1                  TO W-SUB-1
+000018C
+000019C            PERFORM SUB-2110-RECURSE-FORMATS THRU SUB-2110-EXIT
+000020C                UNTIL W-SUB-1 > LENGTH OF W-RECURSED-FORMAT
+000021C                OR    NOT FAKER-RESPONSE-GOOD
+000022C                                     IN L-PARAMETER
+000023C
+000024C            IF      NOT FAKER-RESPONSE-GOOD
+000025C                                    IN L-PARAMETER
+000026C                GO TO SUB-2100-EXIT
+000027C            END-IF
+000028C
+000029C            MOVE SPACES
+000030C              TO FAKER-RESULT       IN L-PARAMETER
+000031C            MOVE 1                  TO W-SUB-1
+000032C                                       W-SUB-2
+000033C
+000034C            PERFORM SUB-2120-PROCESS-FORMATS THRU SUB-2120-EXIT
+000035C                UNTIL W-SUB-1 > LENGTH OF W-RECURSED-FORMAT
+000036C                OR    W-SUB-2 > LENGTH OF FAKER-RESULT
+000037C                                           IN L-PARAMETER
+000038C                OR    W-RECURSED-FORMAT(W-SUB-1 : ) = SPACES
+000039C            .
+000040C        SUB-2100-EXIT.
+000041C            EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0033
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000042C       /
+000043C        SUB-2110-RECURSE-FORMATS.
+000044C       *-------------------------
+000045C
+000046C            IF      W-RECURSED-FORMAT-CHAR(W-SUB-1) NOT = W-FORMAT-START
+000047C                ADD  1              TO W-SUB-1
+000048C                GO TO SUB-2110-EXIT
+000049C            END-IF
+000050C
+000051C            MOVE W-SUB-1            TO W-SUB-1-SAVE
+000052C            ADD  1                  TO W-SUB-1
+000053C
+000054C            UNSTRING W-RECURSED-FORMAT
+000055C                             DELIMITED W-FORMAT-END
+000056C                                  INTO W-FORMAT-ENTRY
+000057C                               POINTER W-SUB-1
+000058C
+000059C            IF      W-FORMAT-ENTRY-IS-FORMAT
+000060C                MOVE W-RECURSED-FORMAT(W-SUB-1 : )
+000061C                                    TO W-RECURSED-FORMAT-REST
+000062C                MOVE W-SUB-1-SAVE   TO W-SUB-1
+000063C
+000064C                PERFORM SUB-9000-EXAMINE-FIND-FORMAT THRU SUB-9000-EXIT
+000065C
+000066C                IF      NOT FAKER-RESPONSE-GOOD
+000067C                                    IN L-PARAMETER
+000068C                    GO TO SUB-2110-EXIT
+000069C                END-IF
+000070C
+000071C                STRING W-FAKER-FORMAT
+000072C                             DELIMITED '  '
+000073C                                  INTO W-RECURSED-FORMAT
+000074C                               POINTER W-SUB-1-SAVE
+000075C
+000076C                MOVE W-RECURSED-FORMAT-REST
+000077C                                    TO W-RECURSED-FORMAT(W-SUB-1-SAVE : )
+000078C            END-IF
+000079C            .
+000080C        SUB-2110-EXIT.
+000081C            EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0034
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000082C       /
+000083C        SUB-2120-PROCESS-FORMATS.
+000084C       *-------------------------
+000085C
+000086C            IF      W-RECURSED-FORMAT-CHAR(W-SUB-1) = W-FORMAT-START
+000087C                ADD  1              TO W-SUB-1
+000088C
+000089C                UNSTRING W-RECURSED-FORMAT
+000090C                             DELIMITED W-FORMAT-END
+000091C                                  INTO W-FORMAT-ENTRY
+000092C                               POINTER W-SUB-1
+000093C
+000094C                PERFORM SUB-9000-EXAMINE-FIND-FORMAT THRU SUB-9000-EXIT
+000095C
+000096C                STRING W-FAKER-RESULT
+000097C                             DELIMITED '  '
+000098C                                  INTO FAKER-RESULT
+000099C                                       IN L-PARAMETER
+000100C                               POINTER W-SUB-2
+000101C            ELSE
+000102C                MOVE W-RECURSED-FORMAT-CHAR(W-SUB-1)
+000103C                  TO FAKER-RESULT   IN L-PARAMETER(W-SUB-2 : 1)
+000104C                ADD  1              TO W-SUB-1
+000105C                                       W-SUB-2
+000106C            END-IF
+000107C            .
+000108C        SUB-2120-EXIT.
+000109C            EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0035
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000272        /
+000273         SUB-2200-SEPARATE-FIELDS.
+000274        *------------------------
+000275
+000276             MOVE 1                  TO W-POINTER
+000277
+000278             UNSTRING FAKER-RESULT   IN L-PARAMETER
+000279                              DELIMITED '\n'
+000280                                   INTO FAKER-ADDRESS-STREET
+000281                                         IN L-PARAMETER
+000282                                POINTER W-POINTER
+000283
+000284             UNSTRING FAKER-RESULT   IN L-PARAMETER
+000285                              DELIMITED ', '
+000286                                   INTO FAKER-ADDRESS-CITY
+000287                                         IN L-PARAMETER
+000288                                POINTER W-POINTER
+000289
+000290             UNSTRING FAKER-RESULT   IN L-PARAMETER
+000291                              DELIMITED ' '
+000292                                   INTO FAKER-ADDRESS-STATE
+000293                                         IN L-PARAMETER
+000294                                        FAKER-ADDRESS-POSTCODE
+000295                                         IN L-PARAMETER
+000296                                POINTER W-POINTER
+000297             .
+000298         SUB-2200-EXIT.
+000299             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0036
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000300        /
+000301         SUB-3000-SHUT-DOWN.
+warning: ignoring redundant .
+000302        *-------------------
+000303
+000304        D    IF      FAKER-RESPONSE-GOOD
+000305        D                            IN L-PARAMETER
+000306        D        DISPLAY 'FAKADDR completed successfully'
+000307        D    ELSE
+000308        D        DISPLAY 'FAKADDR ended with error '
+000309        D                FAKER-RESPONSE-CODE
+000310        D                            IN L-PARAMETER
+000311        D                ': '
+000312        D                FAKER-RESPONSE-MSG
+000313        D                             IN L-PARAMETER
+000314        D    END-IF
+000315             .
+000316         SUB-3000-EXIT.
+000317             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0037
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000318        /
+000319         SUB-9000-EXAMINE-FIND-FORMAT.
+000320        *-----------------------------
+000321
+000322             EVALUATE W-FORMAT-ENTRY
+000323               WHEN 'BN'
+000324                 PERFORM SUB-9020-BUILDING-NO THRU SUB-9020-EXIT
+000325
+000326               WHEN 'CT'
+000327                 PERFORM SUB-9030-CITY THRU SUB-9030-EXIT
+000328
+000329               WHEN 'CP'
+000330                 PERFORM SUB-9040-CITY-PREFIX THRU SUB-9040-EXIT
+000331
+000332               WHEN 'CS'
+000333                 PERFORM SUB-9050-CITY-SUFFIX THRU SUB-9050-EXIT
+000334
+000335               WHEN 'MA'
+000336                 PERFORM SUB-9060-MILITARY-APO THRU SUB-9060-EXIT
+000337
+000338               WHEN 'MD'
+000339                 PERFORM SUB-9070-MILITARY-DPO THRU SUB-9070-EXIT
+000340
+000341               WHEN 'M$'
+000342                 PERFORM SUB-9080-MILITARY-SHIP-PREFIX THRU SUB-9080-EXIT
+000343
+000344               WHEN 'MS'
+000345                 PERFORM SUB-9090-MILITARY-STATE-ABBR THRU SUB-9090-EXIT
+000346
+000347               WHEN 'PC'
+000348                 PERFORM SUB-9100-POSTCODE THRU SUB-9100-EXIT
+000349
+000350               WHEN '2A'
+000351                 PERFORM SUB-9110-SECONDARY-ADDRESS THRU SUB-9110-EXIT
+000352
+000353               WHEN 'ST'
+000354                 PERFORM SUB-9130-STATE-ABBR THRU SUB-9130-EXIT
+000355
+000356               WHEN 'SP'
+000357                 PERFORM SUB-9140-STATE-POSTCODE THRU SUB-9140-EXIT
+000358
+000359               WHEN 'SA'
+000360                 PERFORM SUB-9150-STREET-ADDRESS THRU SUB-9150-EXIT
+000361
+000362               WHEN 'SN'
+000363                 PERFORM SUB-9160-STREET-NAME THRU SUB-9160-EXIT
+000364
+000365               WHEN 'SS'
+000366                 PERFORM SUB-9170-STREET-SUFFIX THRU SUB-9170-EXIT
+000367
+000368               WHEN 'FN'
+000369                 PERFORM SUB-9190-FIRST-NAME THRU SUB-9190-EXIT
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0038
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000370
+000371               WHEN 'LN'
+000372                 PERFORM SUB-9200-LAST-NAME THRU SUB-9200-EXIT
+000373
+000374               WHEN OTHER
+000375                 MOVE SPACES         TO W-TABLE-1
+000376                 SET  FAKER-UNKNOWN-FORMAT
+000377                                     IN L-PARAMETER
+000378                                     TO TRUE
+000379                 STRING 'Unknown FAKADDR format "'
+000380                         W-FORMAT-ENTRY
+000381                         '"'  DELIMITED SIZE
+000382                                   INTO FAKER-RESPONSE-MSG
+000383                                     IN L-PARAMETER
+000384                 GO TO SUB-9000-EXIT
+000385             END-EVALUATE
+000386
+000387             ADD  1
+000388               TO FAKER-INFO-CNT     IN L-PARAMETER
+000389             SET  FI-DX
+000390               TO FAKER-INFO-CNT     IN L-PARAMETER
+000391             MOVE W-TABLE-1
+000392               TO FAKER-TABLE        IN L-PARAMETER(FI-DX)
+000393
+000394             EVALUATE TRUE
+000395               WHEN W-TABLE-1(1:8) = 'FORMATS-'
+000396                 PERFORM SUB-9700-FIND-RANDOM-FORMAT THRU SUB-9700-EXIT
+000397
+000398               WHEN W-TABLE-1 = 'FIRST-NAME'
+000399               OR               'LAST-NAME'
+000400                 MOVE FAKER-RESULT   IN W-FAKER-PARAMETER
+000401                   TO W-FAKER-RESULT
+000402
+000403               WHEN OTHER
+000404                 PERFORM SUB-9800-FIND-RANDOM-ADDRESS THRU SUB-9800-EXIT
+000405             END-EVALUATE
+000406             .
+000407         SUB-9000-EXIT.
+000408             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0039
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000409        /
+000410         SUB-9010-ADDRESS.
+000411        *-----------------
+000412
+000413             MOVE 'FORMATS-ADDRESS'  TO W-TABLE-1
+000414
+000415             SET  ADDRESS OF L-FORMAT-TABLE-1
+000416               TO ADDRESS OF FORMATS-ADDRESS
+000417             .
+000418         SUB-9010-EXIT.
+000419             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0040
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000420        /
+000421         SUB-9020-BUILDING-NO.
+000422        *---------------------
+000423
+000424             MOVE 'BUILDING-NUMBER-FORMATS'
+000425                                     TO W-TABLE-1
+000426
+000427             SET  ADDRESS OF L-ADDRESS-TABLE-1
+000428               TO ADDRESS OF BUILDING-NUMBER-FORMATS
+000429             .
+000430         SUB-9020-EXIT.
+000431             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0041
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000432        /
+000433         SUB-9030-CITY.
+000434        *--------------
+000435
+000436             MOVE 'FORMATS-CITY'     TO W-TABLE-1
+000437
+000438             SET  ADDRESS OF L-FORMAT-TABLE-1
+000439               TO ADDRESS OF FORMATS-CITY
+000440             .
+000441         SUB-9030-EXIT.
+000442             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0042
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000443        /
+000444         SUB-9040-CITY-PREFIX.
+000445        *---------------------
+000446
+000447             MOVE 'CITY-PREFIXES'    TO W-TABLE-1
+000448
+000449             SET  ADDRESS OF L-ADDRESS-TABLE-1
+000450               TO ADDRESS OF CITY-PREFIXES
+000451             .
+000452         SUB-9040-EXIT.
+000453             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0043
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000454        /
+000455         SUB-9050-CITY-SUFFIX.
+000456        *---------------------
+000457
+000458             MOVE 'CITY-SUFFIXES'    TO W-TABLE-1
+000459
+000460             SET  ADDRESS OF L-ADDRESS-TABLE-1
+000461               TO ADDRESS OF CITY-SUFFIXES
+000462             .
+000463         SUB-9050-EXIT.
+000464             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0044
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000465        /
+000466         SUB-9060-MILITARY-APO.
+000467        *----------------------
+000468
+000469             MOVE 'MILITARY-APO-FORMATS'
+000470                                     TO W-TABLE-1
+000471
+000472             SET  ADDRESS OF L-ADDRESS-TABLE-1
+000473               TO ADDRESS OF MILITARY-APO-FORMATS
+000474             .
+000475         SUB-9060-EXIT.
+000476             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0045
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000477        /
+000478         SUB-9070-MILITARY-DPO.
+000479        *----------------------
+000480
+000481             MOVE 'MILITARY-DPO-FORMATS'
+000482                                     TO W-TABLE-1
+000483
+000484             SET  ADDRESS OF L-ADDRESS-TABLE-1
+000485               TO ADDRESS OF MILITARY-DPO-FORMATS
+000486             .
+000487         SUB-9070-EXIT.
+000488             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0046
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000489        /
+000490         SUB-9080-MILITARY-SHIP-PREFIX.
+000491        *------------------------------
+000492
+000493             MOVE 'MILITARY-SHIP-PREFIXES'
+000494                                     TO W-TABLE-1
+000495
+000496             SET  ADDRESS OF L-ADDRESS-TABLE-1
+000497               TO ADDRESS OF MILITARY-SHIP-PREFIXES
+000498             .
+000499         SUB-9080-EXIT.
+000500             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0047
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000501        /
+000502         SUB-9090-MILITARY-STATE-ABBR.
+000503        *-----------------------------
+000504
+000505             MOVE 'MILITARY-STATES-ABBR'
+000506                                     TO W-TABLE-1
+000507
+000508             SET  ADDRESS OF L-ADDRESS-TABLE-1
+000509               TO ADDRESS OF MILITARY-STATES-ABBR
+000510             .
+000511         SUB-9090-EXIT.
+000512             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0048
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000513        /
+000514         SUB-9100-POSTCODE.
+000515        *------------------
+000516
+000517             MOVE 'POSTCODE-FORMATS' TO W-TABLE-1
+000518
+000519             SET  ADDRESS OF L-ADDRESS-TABLE-1
+000520               TO ADDRESS OF POSTCODE-FORMATS
+000521             .
+000522         SUB-9100-EXIT.
+000523             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0049
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000524        /
+000525         SUB-9110-SECONDARY-ADDRESS.
+000526        *---------------------------
+000527
+000528             MOVE 'SECONDARY-ADDRESS-FORMATS'
+000529                                     TO W-TABLE-1
+000530
+000531             SET  ADDRESS OF L-ADDRESS-TABLE-1
+000532               TO ADDRESS OF SECONDARY-ADDRESS-FORMATS
+000533             .
+000534         SUB-9110-EXIT.
+000535             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0050
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000536        /
+000537         SUB-9120-STATE.
+000538        *---------------
+000539
+000540             MOVE 'STATES'           TO W-TABLE-1
+000541
+000542             SET  ADDRESS OF L-ADDRESS-TABLE-1
+000543               TO ADDRESS OF STATES
+000544             .
+000545         SUB-9120-EXIT.
+000546             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0051
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000547        /
+000548         SUB-9130-STATE-ABBR.
+000549        *--------------------
+000550
+000551             MOVE 'STATES-ABBR'      TO W-TABLE-1
+000552
+000553             SET  ADDRESS OF L-ADDRESS-TABLE-1
+000554               TO ADDRESS OF STATES-ABBR
+000555             .
+000556         SUB-9130-EXIT.
+000557             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0052
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000558        /
+000559         SUB-9140-STATE-POSTCODE.
+000560        *------------------------
+000561
+000562             MOVE 'STATES-POSTCODE'  TO W-TABLE-1
+000563
+000564             SET  ADDRESS OF L-ADDRESS-TABLE-1
+000565               TO ADDRESS OF STATES-POSTCODE
+000566             .
+000567         SUB-9140-EXIT.
+000568             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0053
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000569        /
+000570         SUB-9150-STREET-ADDRESS.
+000571        *------------------------
+000572
+000573             MOVE 'FORMATS-STREET-ADDR'
+000574                                     TO W-TABLE-1
+000575
+000576             SET  ADDRESS OF L-FORMAT-TABLE-1
+000577               TO ADDRESS OF FORMATS-STREET-ADDR
+000578             .
+000579         SUB-9150-EXIT.
+000580             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0054
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000581        /
+000582         SUB-9160-STREET-NAME.
+000583        *---------------------
+000584
+000585             MOVE 'FORMATS-STREET-NAME'
+000586                                     TO W-TABLE-1
+000587
+000588             SET  ADDRESS OF L-FORMAT-TABLE-1
+000589               TO ADDRESS OF FORMATS-STREET-NAME
+000590             .
+000591         SUB-9160-EXIT.
+000592             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0055
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000593        /
+000594         SUB-9170-STREET-SUFFIX.
+000595        *-----------------------
+000596
+000597             MOVE 'STREET-SUFFIXES'  TO W-TABLE-1
+000598
+000599             SET  ADDRESS OF L-ADDRESS-TABLE-1
+000600               TO ADDRESS OF STREET-SUFFIXES
+000601             .
+000602         SUB-9170-EXIT.
+000603             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0056
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000604        /
+000605         SUB-9180-TERRITORY-ABBR.
+000606        *------------------------
+000607
+000608             MOVE 'TERRITORIES-ABBR' TO W-TABLE-1
+000609
+000610             SET  ADDRESS OF L-ADDRESS-TABLE-1
+000611               TO ADDRESS OF TERRITORIES-ABBR
+000612             .
+000613         SUB-9180-EXIT.
+000614             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0057
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000615        /
+000616         SUB-9190-FIRST-NAME.
+000617        *--------------------
+000618
+000619             MOVE 'FIRST-NAME'       TO W-TABLE-1
+000620             SET  PERSON-FIRST-NAME  IN W-FAKER-PARAMETER
+000621               TO TRUE
+000622
+000623             CALL W-FAKPERS-PROG  USING W-FAKER-PARAMETER
+000624             .
+000625         SUB-9190-EXIT.
+000626             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0058
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000627        /
+000628         SUB-9200-LAST-NAME.
+000629        *-------------------
+000630
+000631             MOVE 'LAST-NAME'        TO W-TABLE-1
+000632             SET  PERSON-LAST-NAME   IN W-FAKER-PARAMETER
+000633               TO TRUE
+000634
+000635             CALL W-FAKPERS-PROG  USING W-FAKER-PARAMETER
+000636             .
+000637         SUB-9200-EXIT.
+000638             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0059
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000639        /
+000640         COPY FAKERPD2.
+000001C       *========================== COB-FAKER ===========================*
+000002C       * Authors: Brian D Pead
+000003C       *
+000004C       * License: MIT
+000005C       *
+000006C       * Date        Version  Description
+000007C       * ----        -------  -----------
+000008C       * 2020-02-08  1.0      First release
+000009C       *================================================================*
+000010C
+000011C        SUB-9700-FIND-RANDOM-FORMAT.
+000012C       *----------------------------
+000013C
+000014C            PERFORM SUB-9901-CALL-FAKRAND
+000015C
+000016C            IF      W-TABLE-2 = SPACES
+000017C                COMPUTE W-RANDOM-NO =  FAKRAND-RANDOM-NO
+000018C                                       * L-FORMAT-WEIGHT-TOT-1
+000019C            ELSE
+000020C                COMPUTE W-RANDOM-NO =  FAKRAND-RANDOM-NO
+000021C                                       * (L-FORMAT-WEIGHT-TOT-1 +
+000022C                                          L-FORMAT-WEIGHT-TOT-2)
+000023C            END-IF
+000024C
+000025C            MOVE W-RANDOM-NO        TO FAKER-RANDOM-NO-SUB
+000026C                                         IN L-PARAMETER(FI-DX)
+000027C            MOVE 0                  TO W-FOUND-DX
+000028C
+000029C            PERFORM SUB-9710-FIND-FORMAT THRU SUB-9710-EXIT
+000030C                VARYING L-F-DX-1 FROM 1 BY 1
+000031C                  UNTIL W-FOUND-DX > 0
+000032C                  OR    L-F-DX-1 > L-FORMAT-ENTRY-CNT-1
+000033C
+000034C            EVALUATE TRUE
+000035C              WHEN W-FOUND-DX > 0
+000036C                MOVE L-FORMAT-ENTRY-1(W-FOUND-DX)
+000037C                                    TO W-FAKER-FORMAT
+000038C
+000039C              WHEN W-TABLE-2 NOT = SPACES
+000040C                ADD  1
+000041C                  TO FAKER-INFO-CNT IN L-PARAMETER
+000042C                SET  FI-DX
+000043C                  TO FAKER-INFO-CNT IN L-PARAMETER
+000044C                MOVE W-TABLE-2
+000045C                  TO FAKER-TABLE    IN L-PARAMETER(FI-DX)
+000046C                MOVE W-RANDOM-NO
+000047C                  TO FAKER-RANDOM-NO-SUB
+000048C                                    IN L-PARAMETER(FI-DX)
+000049C
+000050C                MOVE 0              TO W-FOUND-DX
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0060
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000051C
+000052C                PERFORM SUB-9720-FIND-FORMAT THRU SUB-9720-EXIT
+000053C                    VARYING L-F-DX-2 FROM 1 BY 1
+000054C                      UNTIL W-FOUND-DX > 0
+000055C                      OR    L-F-DX-2 > L-FORMAT-ENTRY-CNT-2
+000056C
+000057C                IF      W-FOUND-DX > 0
+000058C                    MOVE L-FORMAT-ENTRY-2(W-FOUND-DX)
+000059C                                    TO W-FAKER-FORMAT
+000060C                ELSE
+000061C                    MOVE 'Random format not found'
+000062C                                    TO W-FAKER-FORMAT
+000063C                END-IF
+000064C
+000065C              WHEN OTHER
+000066C                MOVE 'Random format not found'
+000067C                                    TO W-FAKER-FORMAT
+000068C            END-EVALUATE
+000069C            .
+000070C        SUB-9700-EXIT.
+000071C            EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0061
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000072C       /
+000073C        SUB-9710-FIND-FORMAT.
+000074C       *---------------------
+000075C
+000076C            IF      W-RANDOM-NO <= L-FORMAT-WEIGHT-1(L-F-DX-1)
+000077C                SET  W-FOUND-DX     TO L-F-DX-1
+000078C                MOVE W-FOUND-DX     TO FAKER-TABLE-ENTRY
+000079C                                         IN L-PARAMETER(FI-DX)
+000080C            ELSE
+000081C                SUBTRACT L-FORMAT-WEIGHT-1(L-F-DX-1)
+000082C                                  FROM W-RANDOM-NO
+000083C            END-IF
+000084C            .
+000085C        SUB-9710-EXIT.
+000086C            EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0062
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000087C       /
+000088C        SUB-9720-FIND-FORMAT.
+000089C       *---------------------
+000090C
+000091C            IF      W-RANDOM-NO <= L-FORMAT-WEIGHT-2(L-F-DX-2)
+000092C                SET  W-FOUND-DX     TO L-F-DX-2
+000093C                MOVE W-FOUND-DX     TO FAKER-TABLE-ENTRY
+000094C                                         IN L-PARAMETER(FI-DX)
+000095C            ELSE
+000096C                SUBTRACT L-FORMAT-WEIGHT-2(L-F-DX-2)
+000097C                                  FROM W-RANDOM-NO
+000098C            END-IF
+000099C            .
+000100C        SUB-9720-EXIT.
+000101C            EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0063
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000641        /
+000642         SUB-9800-FIND-RANDOM-ADDRESS.
+000643        *-----------------------------
+000644
+000645             PERFORM SUB-9901-CALL-FAKRAND THRU SUB-9901-EXIT
+000646
+000647             COMPUTE W-RANDOM-SUB    =  FAKRAND-RANDOM-NO
+000648                                        * L-ADDRESS-ENTRY-CNT-1
+000649                                        + 1
+000650
+000651             MOVE W-RANDOM-SUB       TO FAKER-RANDOM-NO-SUB
+000652                                          IN L-PARAMETER(FI-DX)
+000653                                        W-FOUND-DX
+000654                                        FAKER-TABLE-ENTRY
+000655                                          IN L-PARAMETER(FI-DX)
+000656
+000657             IF      W-TABLE-1 = 'STATES-POSTCODE'
+000658                 SET  SP-DX          TO W-FOUND-DX
+000659
+000660                 PERFORM SUB-9901-CALL-FAKRAND THRU SUB-9901-EXIT
+000661
+000662                 COMPUTE W-POSTCODE  =  (FAKRAND-RANDOM-NO
+000663                                         * (STATE-POSTCODE-MAX(SP-DX)
+000664                                         -  STATE-POSTCODE-MIN(SP-DX)))
+000665                                        + STATE-POSTCODE-MIN(SP-DX)
+000666                                        + 1
+000667                 COMPUTE W-RANDOM-SUB
+000668                                     =  FAKRAND-RANDOM-NO
+000669                                        * POSTCODE-FORMAT-CNT
+000670                                        + 1
+000671
+000672                 MOVE L-ADDRESS-ENTRY-1(W-FOUND-DX)(1 : 3)
+000673                                     TO W-FAKER-RESULT(1 : 3)
+000674                 MOVE POSTCODE-FORMAT(W-RANDOM-SUB)
+000675                                     TO W-FAKER-RESULT(4 : )
+000676                 MOVE W-POSTCODE     TO W-FAKER-RESULT(4 : 5)
+000677             ELSE
+000678                 MOVE L-ADDRESS-ENTRY-1(W-FOUND-DX)
+000679                                     TO W-FAKER-RESULT
+000680             END-IF
+000681
+000682             MOVE 0                  TO W-DIGIT-CNT
+000683
+000684             INSPECT W-FAKER-RESULT
+000685                               TALLYING W-DIGIT-CNT
+000686                                FOR ALL W-HASH
+000687                                        W-PERCENT
+000688
+000689             IF      W-DIGIT-CNT > 0
+000690                 PERFORM SUB-9810-REPLACE-DIGIT THRU SUB-9810-EXIT
+000691                     VARYING W-SUB-D FROM 1 BY 1
+000692                       UNTIL W-SUB-D > LENGTH OF W-FAKER-RESULT
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0064
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000693             END-IF
+000694             .
+000695         SUB-9800-EXIT.
+000696             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0065
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000697        /
+000698         SUB-9810-REPLACE-DIGIT.
+000699        *-----------------------
+000700
+000701             IF      W-FAKER-RESULT(W-SUB-D : 1) NOT = W-HASH
+000702             AND                                       W-PERCENT
+000703                 GO TO SUB-9810-EXIT
+000704             END-IF
+000705
+000706             PERFORM SUB-9901-CALL-FAKRAND THRU SUB-9901-EXIT
+000707
+000708             IF      W-FAKER-RESULT(W-SUB-D : 1) = W-PERCENT
+000709                 COMPUTE W-RANDOM-DIG
+000710                                     =  FAKRAND-RANDOM-NO
+000711                                        * 9
+000712                                        + 1
+000713             ELSE
+000714                 COMPUTE W-RANDOM-DIG
+000715                                     =  FAKRAND-RANDOM-NO
+000716                                        * 10
+000717             END-IF
+000718
+000719             MOVE W-RANDOM-DIG       TO W-FAKER-RESULT(W-SUB-D : 1)
+000720             .
+000721         SUB-9810-EXIT.
+000722             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0066
+
+LINE    PG/LN  A...B............................................................SEQUENCE
+
+000723        /
+000724         SUB-9901-CALL-FAKRAND.
+000725        *----------------------
+000726
+000727             CALL W-FAKRAND-PROG  USING W-FAKRAND-PARAMETER
+000728             .
+000729         SUB-9901-EXIT.
+000730             EXIT.
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0067
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+      WORKING-STORAGE SECTION
+
+00002 NUMERIC        01   W-FOUND-DX                     S9(4) COMP
+
+00008 NUMERIC        01   W-RANDOM-NO                    S9(4)V9(9) COMP
+
+00002 NUMERIC        01   W-RANDOM-SUB                   S9(4) COMP
+
+00002 NUMERIC        01   W-SUB-1                        S9(4) COMP
+
+00002 NUMERIC        01   W-SUB-1-SAVE                   S9(4) COMP
+
+00002 NUMERIC        01   W-SUB-2                        S9(4) COMP
+
+00002 NUMERIC        01   W-SUB-D                        S9(4) COMP
+
+00002 NUMERIC        01   W-DIGIT-CNT                    S9(4) COMP
+
+00001 NUMERIC        01   W-RANDOM-DIG                   9
+
+00030 ALPHANUMERIC   01   W-TABLE-1                      X(30)
+
+00030 ALPHANUMERIC   01   W-TABLE-2                      X(30)
+
+00080 ALPHANUMERIC   01   W-FAKER-RESULT                 X(80)
+
+00080 ALPHANUMERIC   01   W-FAKER-FORMAT                 X(80)
+
+00001 ALPHANUMERIC   01   W-FORMAT-START                 X
+
+00001 ALPHANUMERIC   01   W-FORMAT-END                   X
+
+00001 ALPHANUMERIC   01   FILLER                         X(01)
+      CONDITIONAL    88   W-FIRST-CALL
+      CONDITIONAL    88   W-NOT-FIRST-CALL
+
+00021 GROUP          01   W-COMPILED-DATE
+00004 ALPHANUMERIC   05   W-COMPILED-DATE-YYYY           X(04)
+00002 ALPHANUMERIC   05   W-COMPILED-DATE-MM             X(02)
+00002 ALPHANUMERIC   05   W-COMPILED-DATE-DD             X(02)
+00002 ALPHANUMERIC   05   W-COMPILED-TIME-HH             X(02)
+00002 ALPHANUMERIC   05   W-COMPILED-TIME-MM             X(02)
+00002 ALPHANUMERIC   05   W-COMPILED-TIME-SS             X(02)
+00007 ALPHANUMERIC   05   FILLER                         X(07)
+
+00080 GROUP          01   W-RECURSED-FORMAT
+00001 ALPHANUMERIC   05   W-RECURSED-FORMAT-CHAR         X, OCCURS 80
+
+00080 ALPHANUMERIC   01   W-RECURSED-FORMAT-REST         X(80)
+
+00002 NUMERIC        01   W-POINTER                      S9(4) COMP
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0068
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+00005 NUMERIC        01   W-POSTCODE                     9(05)
+
+00001 ALPHANUMERIC   01   W-HASH                         X(01)
+
+00001 ALPHANUMERIC   01   W-PERCENT                      X(01)
+
+00008 ALPHANUMERIC   01   W-FAKPERS-PROG                 X(08)
+
+00008 ALPHANUMERIC   01   W-FAKRAND-PROG                 X(08)
+
+00004 ALPHANUMERIC   01   W-FORMAT-ENTRY                 X(04)
+      CONDITIONAL    88   W-FORMAT-ENTRY-IS-FORMAT
+
+01160 GROUP          01   W-FAKER-PARAMETER
+00030 ALPHANUMERIC   05   FAKER-PROVIDER-FUNCTION        X(30)
+      CONDITIONAL    88   ADDRESS-ADDRESS
+      CONDITIONAL    88   ADDRESS-BUILDING-NO
+      CONDITIONAL    88   ADDRESS-CITY
+      CONDITIONAL    88   ADDRESS-CITY-PREFIX
+      CONDITIONAL    88   ADDRESS-CITY-SUFFIX
+      CONDITIONAL    88   ADDRESS-MILITARY-APO
+      CONDITIONAL    88   ADDRESS-MILITARY-DPO
+      CONDITIONAL    88   ADDRESS-MILITARY-SHIP-PREFIX
+      CONDITIONAL    88   ADDRESS-MILITARY-STATE-ABBR
+      CONDITIONAL    88   ADDRESS-POSTCODE
+      CONDITIONAL    88   ADDRESS-SECONDARY-ADDRESS
+      CONDITIONAL    88   ADDRESS-STATE
+      CONDITIONAL    88   ADDRESS-STATE-ABBR
+      CONDITIONAL    88   ADDRESS-STATE-POSTCODE
+      CONDITIONAL    88   ADDRESS-STREET-ADDRESS
+      CONDITIONAL    88   ADDRESS-STREET-NAME
+      CONDITIONAL    88   ADDRESS-STREET-SUFFIX
+      CONDITIONAL    88   ADDRESS-TERRITORY-ABBR
+      CONDITIONAL    88   COMPANY-COMPANY
+      CONDITIONAL    88   COMPANY-SUFFIX
+      CONDITIONAL    88   PERSON-FIRST-NAME
+      CONDITIONAL    88   PERSON-FIRST-NAME-MALE
+      CONDITIONAL    88   PERSON-FIRST-NAME-FEMALE
+      CONDITIONAL    88   PERSON-LAST-NAME
+      CONDITIONAL    88   PERSON-LAST-NAME-MALE
+      CONDITIONAL    88   PERSON-LAST-NAME-FEMALE
+      CONDITIONAL    88   PERSON-NAME
+      CONDITIONAL    88   PERSON-NAME-MALE
+      CONDITIONAL    88   PERSON-NAME-FEMALE
+      CONDITIONAL    88   PERSON-PREFIX
+      CONDITIONAL    88   PERSON-PREFIX-MALE
+      CONDITIONAL    88   PERSON-PREFIX-FEMALE
+      CONDITIONAL    88   PERSON-SUFFIX
+      CONDITIONAL    88   PERSON-SUFFIX-MALE
+      CONDITIONAL    88   PERSON-SUFFIX-FEMALE
+      CONDITIONAL    88   TAXID-EIN
+      CONDITIONAL    88   TAXID-EIN-HYPHEN
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0069
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+      CONDITIONAL    88   TAXID-ITIN
+      CONDITIONAL    88   TAXID-ITIN-HYPHEN
+      CONDITIONAL    88   TAXID-SSN
+      CONDITIONAL    88   TAXID-SSN-HYPHEN
+00004 NUMERIC        05   FAKER-SEED-NO                  9(9) COMP
+00080 ALPHANUMERIC   05   FAKER-SEED-TEXT                X(80)
+00004 NUMERIC        05   FAKER-RESPONSE-CODE            9(4)
+      CONDITIONAL    88   FAKER-RESPONSE-GOOD
+      CONDITIONAL    88   FAKER-UNKNOWN-PROVIDER
+      CONDITIONAL    88   FAKER-UNKNOWN-FUNCTION
+      CONDITIONAL    88   FAKER-UNKNOWN-FORMAT
+00080 ALPHANUMERIC   05   FAKER-RESPONSE-MSG             X(80)
+00080 ALPHANUMERIC   05   FAKER-RESULT                   X(80)
+00080 ALPHANUMERIC   05   FAKER-RESULT-FIELDS            X(80)
+00080 GROUP          05   FAKER-ADDRESS, REDEFINES FAKER-RESULT-FIELDS
+00035 ALPHANUMERIC   10   FAKER-ADDRESS-STREET           X(35)
+00025 ALPHANUMERIC   10   FAKER-ADDRESS-CITY             X(25)
+00010 ALPHANUMERIC   10   FAKER-ADDRESS-STATE            X(10)
+00010 ALPHANUMERIC   10   FAKER-ADDRESS-POSTCODE         X(10)
+00080 GROUP          05   FAKER-PERSON, REDEFINES FAKER-RESULT-FIELDS
+00010 ALPHANUMERIC   10   FAKER-PERSON-PREFIX            X(10)
+00025 ALPHANUMERIC   10   FAKER-PERSON-FIRST-NAME        X(25)
+00035 ALPHANUMERIC   10   FAKER-PERSON-LAST-NAME         X(35)
+00010 ALPHANUMERIC   10   FAKER-PERSON-SUFFIX            X(10)
+00002 NUMERIC        05   FAKER-INFO-CNT                 S9(4) COMP
+00800 GROUP          05   FAKER-INFO-OCCS
+00800 GROUP          10   FAKER-INFO                     OCCURS 20
+00030 ALPHANUMERIC   15   FAKER-TABLE                    X(30)
+00008 NUMERIC        15   FAKER-RANDOM-NO-SUB            S9(4)V9(9) COMP
+00002 NUMERIC        15   FAKER-TABLE-ENTRY              S9(4) COMP
+
+00088 GROUP          01   W-FAKRAND-PARAMETER
+00004 NUMERIC        05   FAKRAND-SEED-NO                9(09) COMP
+00080 ALPHANUMERIC   05   FAKRAND-SEED-TEXT              X(80)
+00004 NUMERIC        05   FAKRAND-RANDOM-NO              V9(09) COMP
+
+00154 GROUP          01   FORMATS-CITY
+00002 NUMERIC        05   FORMAT-CITY-CNT                S9(4) COMP
+00008 NUMERIC        05   FORMAT-CITY-WEIGHT-TOT         S99V9(9) COMP
+00144 GROUP          05   FORMAT-CITY-OCCS
+00032 ALPHANUMERIC   10   FILLER                         X(32)
+00004 NUMERIC        10   FILLER                         SV9(9) COMP
+00032 ALPHANUMERIC   10   FILLER                         X(32)
+00004 NUMERIC        10   FILLER                         SV9(9) COMP
+00032 ALPHANUMERIC   10   FILLER                         X(32)
+00004 NUMERIC        10   FILLER                         SV9(9) COMP
+00032 ALPHANUMERIC   10   FILLER                         X(32)
+00004 NUMERIC        10   FILLER                         SV9(9) COMP
+00144 GROUP          05   FILLER, REDEFINES FORMAT-CITY-OCCS
+00144 GROUP          10   FILLER                         OCCURS 4
+00032 ALPHANUMERIC   15   FORMAT-CITY                    X(32)
+00004 NUMERIC        15   FORMAT-CITY-WEIGHT             SV9(9) COMP
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0070
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+00082 GROUP          01   FORMATS-STREET-NAME
+00002 NUMERIC        05   FORMAT-STREET-NAME-CNT         S9(4) COMP
+00008 NUMERIC        05   FORMAT-STREET-NAME-WEIGHT-TOT  S99V9(9) COMP
+00072 GROUP          05   FORMAT-STREET-NAME-OCCS
+00032 ALPHANUMERIC   10   FILLER                         X(32)
+00004 NUMERIC        10   FILLER                         SV9(9) COMP
+00032 ALPHANUMERIC   10   FILLER                         X(32)
+00004 NUMERIC        10   FILLER                         SV9(9) COMP
+00072 GROUP          05   FILLER, REDEFINES FORMAT-STREET-NAME-OCCS
+00072 GROUP          10   FILLER                         OCCURS 2
+00032 ALPHANUMERIC   15   FORMAT-STREET-NAME             X(32)
+00004 NUMERIC        15   FORMAT-STREET-NAME-WEIGHT      SV9(9) COMP
+
+00082 GROUP          01   FORMATS-STREET-ADDR
+00002 NUMERIC        05   FORMAT-STREET-ADDR-CNT         S9(4) COMP
+00008 NUMERIC        05   FORMAT-STREET-ADDR-WEIGHT-TOT  S99V9(9) COMP
+00072 GROUP          05   FORMAT-STREET-ADDR-OCCS
+00032 ALPHANUMERIC   10   FILLER                         X(32)
+00004 NUMERIC        10   FILLER                         SV9(9) COMP
+00032 ALPHANUMERIC   10   FILLER                         X(32)
+00004 NUMERIC        10   FILLER                         SV9(9) COMP
+00072 GROUP          05   FILLER, REDEFINES FORMAT-STREET-ADDR-OCCS
+00072 GROUP          10   FILLER                         OCCURS 2
+00032 ALPHANUMERIC   15   FORMAT-STREET-ADDR             X(32)
+00004 NUMERIC        15   FORMAT-STREET-ADDR-WEIGHT      SV9(9) COMP
+
+00154 GROUP          01   FORMATS-ADDRESS
+00002 NUMERIC        05   FORMAT-ADDRESS-CNT             S9(4) COMP
+00008 NUMERIC        05   FORMAT-ADDRESS-WEIGHT-TOT      S99V9(9) COMP
+00144 GROUP          05   FORMAT-ADDRESS-OCCS
+00032 ALPHANUMERIC   10   FILLER                         X(32)
+00004 NUMERIC        10   FILLER                         SV9(9) COMP
+00032 ALPHANUMERIC   10   FILLER                         X(32)
+00004 NUMERIC        10   FILLER                         SV9(9) COMP
+00032 ALPHANUMERIC   10   FILLER                         X(32)
+00004 NUMERIC        10   FILLER                         SV9(9) COMP
+00032 ALPHANUMERIC   10   FILLER                         X(32)
+00004 NUMERIC        10   FILLER                         SV9(9) COMP
+00144 GROUP          05   FILLER, REDEFINES FORMAT-ADDRESS-OCCS
+00144 GROUP          10   FILLER                         OCCURS 4
+00032 ALPHANUMERIC   15   FORMAT-ADDRESS                 X(32)
+00004 NUMERIC        15   FORMAT-ADDRESS-WEIGHT          SV9(9) COMP
+
+00100 GROUP          01   CITY-PREFIXES
+00002 NUMERIC        05   CITY-PREFIX-CNT                S9(4) COMP
+00098 GROUP          05   CITY-PREFIX-OCCS
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0071
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00098 GROUP          05   FILLER, REDEFINES CITY-PREFIX-OCCS
+00098 GROUP          10   FILLER                         OCCURS 7
+00014 ALPHANUMERIC   15   CITY-PREFIX                    X(14)
+
+00268 GROUP          01   CITY-SUFFIXES
+00002 NUMERIC        05   CITY-SUFFIX-CNT                S9(4) COMP
+00266 GROUP          05   CITY-SUFFIX-OCCS
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00266 GROUP          05   FILLER, REDEFINES CITY-SUFFIX-OCCS
+00266 GROUP          10   FILLER                         OCCURS 19
+00014 ALPHANUMERIC   15   CITY-SUFFIX                    X(14)
+
+00044 GROUP          01   BUILDING-NUMBER-FORMATS
+00002 NUMERIC        05   BUILDING-NUMBER-FORMAT-CNT     S9(4) COMP
+00042 GROUP          05   BUILDING-NUMBER-FORMAT-OCCS
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00042 GROUP          05   FILLER, REDEFINES BUILDING-NUMBER-FORMAT-OCCS
+00042 GROUP          10   FILLER                         OCCURS 3
+00014 ALPHANUMERIC   15   BUILDING-NUMBER-FORMAT         X(14)
+
+03152 GROUP          01   STREET-SUFFIXES
+00002 NUMERIC        05   STREET-SUFFIX-CNT              S9(4) COMP
+03150 GROUP          05   STREET-SUFFIX-OCCS
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0072
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0073
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0074
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0075
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0076
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+03150 GROUP          05   FILLER, REDEFINES STREET-SUFFIX-OCCS
+03150 GROUP          10   FILLER                         OCCURS 225
+00014 ALPHANUMERIC   15   STREET-SUFFIX                  X(14)
+
+00030 GROUP          01   SECONDARY-ADDRESS-FORMATS
+00002 NUMERIC        05   SECONDARY-ADDRESS-FORMAT-CNT   S9(4) COMP
+00028 GROUP          05   SECONDARY-ADDRESS-FORMAT-OCCS
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00028 GROUP          05   FILLER, REDEFINES SECONDARY-ADDRESS-FORMAT-OCCS
+00028 GROUP          10   FILLER                         OCCURS 2
+00014 ALPHANUMERIC   15   SECONDARY-ADDRESS-FORMAT       X(14)
+
+00030 GROUP          01   POSTCODE-FORMATS
+00002 NUMERIC        05   POSTCODE-FORMAT-CNT            S9(4) COMP
+00028 GROUP          05   POSTCODE-FORMAT-OCCS
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00028 GROUP          05   FILLER, REDEFINES POSTCODE-FORMAT-OCCS
+00028 GROUP          10   FILLER                         OCCURS 2
+00014 ALPHANUMERIC   15   POSTCODE-FORMAT                X(14)
+
+00702 GROUP          01   STATES
+00002 NUMERIC        05   STATE-CNT                      S9(4) COMP
+00700 GROUP          05   STATE-OCCS
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0077
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00700 GROUP          05   FILLER, REDEFINES STATE-OCCS
+00700 GROUP          10   FILLER                         OCCURS 50
+00014 ALPHANUMERIC   15   STATE                          X(14)
+
+00716 GROUP          01   STATES-ABBR
+00002 NUMERIC        05   STATE-ABBR-CNT                 S9(4) COMP
+00714 GROUP          05   STATE-ABBR-OCCS
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0078
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00714 GROUP          05   FILLER, REDEFINES STATE-ABBR-OCCS
+00714 GROUP          10   FILLER                         OCCURS 51
+00014 ALPHANUMERIC   15   STATE-ABBR                     X(14)
+
+00716 GROUP          01   STATES-POSTCODE
+00002 NUMERIC        05   STATE-POSTCODE-CNT             S9(4) COMP
+00714 GROUP          05   STATE-POSTCODE-OCCS
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0079
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00714 GROUP          05   FILLER, REDEFINES STATE-POSTCODE-OCCS
+00714 GROUP          10   FILLER                         OCCURS 51
+00002 ALPHANUMERIC   15   STATE-ABBR-PC                  X(2)
+00001 ALPHANUMERIC   15   FILLER                         X
+00005 NUMERIC        15   STATE-POSTCODE-MIN             9(5)
+00001 ALPHANUMERIC   15   FILLER                         X
+00005 NUMERIC        15   STATE-POSTCODE-MAX             9(5)
+
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0080
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+00114 GROUP          01   TERRITORIES-ABBR
+00002 NUMERIC        05   TERRITORY-ABBR-CNT             S9(4) COMP
+00112 GROUP          05   TERRITORY-ABBR-OCCS
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00112 GROUP          05   FILLER, REDEFINES TERRITORY-ABBR-OCCS
+00112 GROUP          10   FILLER                         OCCURS 8
+00014 ALPHANUMERIC   15   TERRITORY-ABBR                 X(14)
+
+00044 GROUP          01   MILITARY-STATES-ABBR
+00002 NUMERIC        05   MILITARY-STATE-ABBR-CNT        S9(4) COMP
+00042 GROUP          05   MILITARY-STATE-ABBR-OCCS
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00042 GROUP          05   FILLER, REDEFINES MILITARY-STATE-ABBR-OCCS
+00042 GROUP          10   FILLER                         OCCURS 3
+00014 ALPHANUMERIC   15   MILITARY-STATE-ABBR            X(14)
+
+00058 GROUP          01   MILITARY-SHIP-PREFIXES
+00002 NUMERIC        05   MILITARY-SHIP-PREFIX-CNT       S9(4) COMP
+00056 GROUP          05   MILITARY-SHIP-PREFIX-OCCS
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00056 GROUP          05   FILLER, REDEFINES MILITARY-SHIP-PREFIX-OCCS
+00056 GROUP          10   FILLER                         OCCURS 4
+00014 ALPHANUMERIC   15   MILITARY-SHIP-PREFIX           X(14)
+
+00030 GROUP          01   MILITARY-APO-FORMATS
+00002 NUMERIC        05   MILITARY-APO-FORMAT-CNT        S9(4) COMP
+00028 GROUP          05   MILITARY-APO-FORMAT-OCCS
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00028 GROUP          05   FILLER, REDEFINES MILITARY-APO-FORMAT-OCCS
+00028 GROUP          10   FILLER                         OCCURS 2
+00014 ALPHANUMERIC   15   MILITARY-APO-FORMAT            X(14)
+
+00030 GROUP          01   MILITARY-DPO-FORMATS
+00002 NUMERIC        05   MILITARY-DPO-FORMAT-CNT        S9(4) COMP
+00028 GROUP          05   MILITARY-DPO-FORMAT-OCCS
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00014 ALPHANUMERIC   10   FILLER                         X(14)
+00028 GROUP          05   FILLER, REDEFINES MILITARY-DPO-FORMAT-OCCS
+00028 GROUP          10   FILLER                         OCCURS 2
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0081
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+00014 ALPHANUMERIC   15   MILITARY-DPO-FORMAT            X(14)
+
+      LINKAGE SECTION
+
+01160 GROUP          01   L-PARAMETER
+00030 ALPHANUMERIC   05   FAKER-PROVIDER-FUNCTION        X(30)
+      CONDITIONAL    88   ADDRESS-ADDRESS
+      CONDITIONAL    88   ADDRESS-BUILDING-NO
+      CONDITIONAL    88   ADDRESS-CITY
+      CONDITIONAL    88   ADDRESS-CITY-PREFIX
+      CONDITIONAL    88   ADDRESS-CITY-SUFFIX
+      CONDITIONAL    88   ADDRESS-MILITARY-APO
+      CONDITIONAL    88   ADDRESS-MILITARY-DPO
+      CONDITIONAL    88   ADDRESS-MILITARY-SHIP-PREFIX
+      CONDITIONAL    88   ADDRESS-MILITARY-STATE-ABBR
+      CONDITIONAL    88   ADDRESS-POSTCODE
+      CONDITIONAL    88   ADDRESS-SECONDARY-ADDRESS
+      CONDITIONAL    88   ADDRESS-STATE
+      CONDITIONAL    88   ADDRESS-STATE-ABBR
+      CONDITIONAL    88   ADDRESS-STATE-POSTCODE
+      CONDITIONAL    88   ADDRESS-STREET-ADDRESS
+      CONDITIONAL    88   ADDRESS-STREET-NAME
+      CONDITIONAL    88   ADDRESS-STREET-SUFFIX
+      CONDITIONAL    88   ADDRESS-TERRITORY-ABBR
+      CONDITIONAL    88   COMPANY-COMPANY
+      CONDITIONAL    88   COMPANY-SUFFIX
+      CONDITIONAL    88   PERSON-FIRST-NAME
+      CONDITIONAL    88   PERSON-FIRST-NAME-MALE
+      CONDITIONAL    88   PERSON-FIRST-NAME-FEMALE
+      CONDITIONAL    88   PERSON-LAST-NAME
+      CONDITIONAL    88   PERSON-LAST-NAME-MALE
+      CONDITIONAL    88   PERSON-LAST-NAME-FEMALE
+      CONDITIONAL    88   PERSON-NAME
+      CONDITIONAL    88   PERSON-NAME-MALE
+      CONDITIONAL    88   PERSON-NAME-FEMALE
+      CONDITIONAL    88   PERSON-PREFIX
+      CONDITIONAL    88   PERSON-PREFIX-MALE
+      CONDITIONAL    88   PERSON-PREFIX-FEMALE
+      CONDITIONAL    88   PERSON-SUFFIX
+      CONDITIONAL    88   PERSON-SUFFIX-MALE
+      CONDITIONAL    88   PERSON-SUFFIX-FEMALE
+      CONDITIONAL    88   TAXID-EIN
+      CONDITIONAL    88   TAXID-EIN-HYPHEN
+      CONDITIONAL    88   TAXID-ITIN
+      CONDITIONAL    88   TAXID-ITIN-HYPHEN
+      CONDITIONAL    88   TAXID-SSN
+      CONDITIONAL    88   TAXID-SSN-HYPHEN
+00004 NUMERIC        05   FAKER-SEED-NO                  9(9) COMP
+00080 ALPHANUMERIC   05   FAKER-SEED-TEXT                X(80)
+00004 NUMERIC        05   FAKER-RESPONSE-CODE            9(4)
+      CONDITIONAL    88   FAKER-RESPONSE-GOOD
+      CONDITIONAL    88   FAKER-UNKNOWN-PROVIDER
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0082
+
+SIZE  TYPE           LVL  NAME                           PICTURE
+
+      CONDITIONAL    88   FAKER-UNKNOWN-FUNCTION
+      CONDITIONAL    88   FAKER-UNKNOWN-FORMAT
+00080 ALPHANUMERIC   05   FAKER-RESPONSE-MSG             X(80)
+00080 ALPHANUMERIC   05   FAKER-RESULT                   X(80)
+00080 ALPHANUMERIC   05   FAKER-RESULT-FIELDS            X(80)
+00080 GROUP          05   FAKER-ADDRESS, REDEFINES FAKER-RESULT-FIELDS
+00035 ALPHANUMERIC   10   FAKER-ADDRESS-STREET           X(35)
+00025 ALPHANUMERIC   10   FAKER-ADDRESS-CITY             X(25)
+00010 ALPHANUMERIC   10   FAKER-ADDRESS-STATE            X(10)
+00010 ALPHANUMERIC   10   FAKER-ADDRESS-POSTCODE         X(10)
+00080 GROUP          05   FAKER-PERSON, REDEFINES FAKER-RESULT-FIELDS
+00010 ALPHANUMERIC   10   FAKER-PERSON-PREFIX            X(10)
+00025 ALPHANUMERIC   10   FAKER-PERSON-FIRST-NAME        X(25)
+00035 ALPHANUMERIC   10   FAKER-PERSON-LAST-NAME         X(35)
+00010 ALPHANUMERIC   10   FAKER-PERSON-SUFFIX            X(10)
+00002 NUMERIC        05   FAKER-INFO-CNT                 S9(4) COMP
+00800 GROUP          05   FAKER-INFO-OCCS
+00800 GROUP          10   FAKER-INFO                     OCCURS 20
+00030 ALPHANUMERIC   15   FAKER-TABLE                    X(30)
+00008 NUMERIC        15   FAKER-RANDOM-NO-SUB            S9(4)V9(9) COMP
+00002 NUMERIC        15   FAKER-TABLE-ENTRY              S9(4) COMP
+
+00370 GROUP          01   L-FORMAT-TABLE-1
+00002 NUMERIC        05   L-FORMAT-ENTRY-CNT-1           S9(4) COMP
+00008 NUMERIC        05   L-FORMAT-WEIGHT-TOT-1          S99V9(9) COMP
+00360 GROUP          05   L-FORMAT-OCCS-1
+00360 GROUP          10   FILLER                         OCCURS 10
+00032 ALPHANUMERIC   15   L-FORMAT-ENTRY-1               X(32)
+00004 NUMERIC        15   L-FORMAT-WEIGHT-1              SV9(9) COMP
+
+00370 GROUP          01   L-FORMAT-TABLE-2
+00002 NUMERIC        05   L-FORMAT-ENTRY-CNT-2           S9(4) COMP
+00008 NUMERIC        05   L-FORMAT-WEIGHT-TOT-2          S99V9(9) COMP
+00360 GROUP          05   L-FORMAT-OCCS-2
+00360 GROUP          10   FILLER                         OCCURS 10
+00032 ALPHANUMERIC   15   L-FORMAT-ENTRY-2               X(32)
+00004 NUMERIC        15   L-FORMAT-WEIGHT-2              SV9(9) COMP
+
+14002 GROUP          01   L-ADDRESS-TABLE-1
+00002 NUMERIC        05   L-ADDRESS-ENTRY-CNT-1          S9(4) COMP
+14000 GROUP          05   L-ADDRESS-OCCS-1
+14000 GROUP          10   FILLER                         OCCURS 1000
+00014 ALPHANUMERIC   15   L-ADDRESS-ENTRY-1              X(14)
+
+
+GnuCOBOL 3.0-rc1.0      FAKADDR.cob                                                   Sun Feb 09 14:56:05 2020  Page 0083
+
+Error/Warning summary:
+
+FAKADDR.cob:301: warning: ignoring redundant .
+
+1 warning in compilation group
+0 errors in compilation group

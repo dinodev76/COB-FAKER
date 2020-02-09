@@ -46,11 +46,26 @@ These instructions will get you a copy of the project up and running on your loc
 
 5. Run VS Code and select File/Open Folder..., and open the above COB-FAKER folder to get started.
 
-## Running the provided test programs
+## Compiling and Running the Provided Programs
 
-1. FAKERGEN: this program generates 1000 random names and addresses and outputs the results to "FAKERGEN Output.txt".  To compile and run it from VS Code, select Terminal/Run Task.../Compile and Run FAKERGEN.
+1. **FAKER**: This subroutine generates random fake names, addresses, tax ids, etc. To compile it from VS Code, click on FAKER.cob and select Terminal/Run Task.../Compile Selected Subroutine. That will create FAKER.dll in the BIN folder. Use the parameter copybook FAKERLNK.cpy when calling FAKER.
 
-2. FAKERTST: this program reads "FAKERTST Input.txt", calls FAKER for each of the specified commands, and displays the results.  To compile and run it from VS Code, select Terminal/Run Task.../Compile and Run FAKERTST.
+    FAKER calls one or more of the following subroutines from this project, as appropriate:
+
+    * **FAKADDR**
+    * **FAKCOMP**
+    * **FAKPERS**
+    * **FAKRAND**
+    * **FAKTXID**
+
+    FAKER also uses the following subroutines from the GC-Utilities project (the DLLs have been copied to the BIN folder of this project):
+
+    * **BITWISE**
+    * **CRC32**
+
+2. **FAKERGEN**: this program generates 1000 random names and addresses and outputs the results to "FAKERGEN Output.txt".  To compile and run it from VS Code, click on FAKERGEN.cob and select Terminal/Run Task.../Compile and Run Selected Main Program.
+
+3. **FAKERTST**: this program reads "FAKERTST Input.txt", calls FAKER for each of the specified commands, and writes the results to "FAKERTST Output.txt".  To compile and run it from VS Code, click on FAKERTST.cob and select Terminal/Run Task.../Compile and Run Selected Main Program.
 
 ## Authors
 

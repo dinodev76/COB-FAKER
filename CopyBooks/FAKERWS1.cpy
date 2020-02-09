@@ -5,7 +5,7 @@
       *
       * Date        Version  Description
       * ----        -------  -----------
-      * 2020-01-12  0.1      First release
+      * 2020-02-08  1.0      First release
       *================================================================*
 
        01  W-FOUND-DX              PIC S9(4)  COMP.

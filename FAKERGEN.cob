@@ -5,7 +5,7 @@
       *
       * Date        Version  Description
       * ----        -------  -----------
-      * 2020-01-12  0.1      First release
+      * 2020-02-08  1.0      First release
       *================================================================*
 
        IDENTIFICATION DIVISION.
@@ -58,12 +58,19 @@
        WORKING-STORAGE SECTION.
       *------------------------
 
-       01  W-REC-CNT               PIC 9(4)   COMP VALUE 0.
-       01  W-TEST-CNT              PIC 9(6)   COMP.
+       01  W-GNRTFILE-RECS         PIC 9(09)  COMP VALUE 0.
+       01  W-TEST-CNT              PIC 9(09)  COMP.
+       01  W-DISP-NUM              PIC ZZ,ZZ9.
        01  W-FAKER-PROG            PIC X(08)       VALUE 'FAKER'.
 
        01  W-ERROR-MSG             PIC X(21)       VALUE
            '**** FAKERGEN error: '.
+
+       01  W-SEED-TEXT.
+           05  FILLER              PIC X(65)       VALUE
+               'Seed text to cause same pseudo-random sequence on each e
+      -        'xecution '.
+           05  W-SEED-REC-NO       PIC 9(04).
 
        01  W-COMPILED-DATE.
            05  W-COMPILED-DATE-YYYY
@@ -115,8 +122,10 @@
        SUB-2000-PROCESS.
       *-----------------
 
-           ADD  1                  TO W-REC-CNT
-      *    MOVE W-REC-CNT          TO FAKER-SEED-NO
+           ADD  1                  TO W-GNRTFILE-RECS
+      *     MOVE W-GNRTFILE-RECS          TO FAKER-SEED-NO
+           MOVE W-GNRTFILE-RECS          TO W-SEED-REC-NO
+           MOVE W-SEED-TEXT        TO FAKER-SEED-TEXT
 
       **** TAXID:
 
@@ -187,15 +196,15 @@
                        FAKER-RESPONSE-MSG
            END-IF
 
-      D    PERFORM VARYING FI-DX FROM 1 BY 1
-      D              UNTIL FI-DX > FAKER-INFO-CNT
-      D        DISPLAY '    INFO: '
-      D                FAKER-TABLE(FI-DX)
-      D                ': '
-      D                FAKER-RANDOM-NO-SUB(FI-DX)
-      D                ', '
-      D                FAKER-TABLE-ENTRY(FI-DX)
-      D    END-PERFORM
+      D     PERFORM VARYING FI-DX FROM 1 BY 1
+      D               UNTIL FI-DX > FAKER-INFO-CNT
+      D         DISPLAY '    INFO: '
+      D                 FAKER-TABLE(FI-DX)
+      D                 ': '
+      D                 FAKER-RANDOM-NO-SUB(FI-DX)
+      D                 ', '
+      D                 FAKER-TABLE-ENTRY(FI-DX)
+      D     END-PERFORM
            .
        SUB-2100-EXIT.
            EXIT.
@@ -205,7 +214,11 @@
       
            CLOSE GNRTFILE
 
-           DISPLAY 'FAKERGEN Completed'
+           MOVE W-GNRTFILE-RECS    TO W-DISP-NUM
+           DISPLAY 'GNRTFILE records written: '
+                   W-DISP-NUM
+
+           DISPLAY 'FAKERGEN completed'
            .
        SUB-3000-EXIT.
            EXIT.

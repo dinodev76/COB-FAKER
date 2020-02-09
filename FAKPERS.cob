@@ -5,7 +5,7 @@
       *
       * Date        Version  Description
       * ----        -------  -----------
-      * 2020-01-12  0.1      First release
+      * 2020-02-08  1.0      First release
       *================================================================*
 
        IDENTIFICATION DIVISION.
@@ -101,9 +101,6 @@
       /
        SUB-1000-START-UP.
       *------------------
-
-           MOVE FAKER-SEED-NO      TO FAKRAND-SEED-NO
-           MOVE FAKER-SEED-TEXT    TO FAKRAND-SEED-TEXT
 
            IF      W-NOT-FIRST-CALL
                GO TO SUB-1000-EXIT
