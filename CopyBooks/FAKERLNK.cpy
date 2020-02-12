@@ -6,6 +6,7 @@
       * Date        Version  Description
       * ----        -------  -----------
       * 2020-02-08  1.0      First release
+      * 2020-02-11  1.0.1    Add BANK and TELETELEPHONE numbers
       *================================================================*
 
       **** Input fields:
@@ -59,6 +60,10 @@
                                    'ADDRESS-STREET-SUFFIX'.
                88  ADDRESS-TERRITORY-ABBR          VALUE
                                    'ADDRESS-TERRITORY-ABBR'.
+               88  BANK-ACCOUNT                    VALUE
+                                   'BANK-ACCOUNT'.
+               88  BANK-ROUTING                    VALUE
+                                   'BANK-ROUTING'.
                88  COMPANY-COMPANY                 VALUE
                                    'COMPANY-COMPANY'.
                88  COMPANY-SUFFIX                  VALUE
@@ -105,6 +110,8 @@
                                    'TAXID-SSN'. 
                88  TAXID-SSN-HYPHEN                VALUE 
                                    'TAXID-SSN-HYPHEN'. 
+               88  TELEPHONE                       VALUE 
+                                   'TELEPHONE'. 
 
            05  FAKER-SEED-NO       PIC 9(9)   COMP VALUE 0.
 
@@ -159,6 +166,20 @@
                                    PIC X(35).
                10  FAKER-PERSON-SUFFIX
                                    PIC X(10).
+
+      **** These fields are populated only for TELEPHONE calls:
+           05  FAKER-TELEPHONE REDEFINES FAKER-RESULT-FIELDS.
+               10  FAKER-TELEPHONE-AREA-CODE
+                                   PIC X(03).
+               10  FILLER          PIC X(01).
+               10  FAKER-TELEPHONE-PREFIX
+                                   PIC X(03).
+               10  FILLER          PIC X(01).
+               10  FAKER-TELEPHONE-SUFFIX
+                                   PIC X(04).
+               10  FILLER          PIC X(01).
+               10  FAKER-TELEPHONE-EXTENSION
+                                   PIC X(04).
 
            05  FAKER-INFO-CNT      PIC S9(4)  COMP. 
 

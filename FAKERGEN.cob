@@ -39,7 +39,8 @@
        FD  GNRTFILE.
 
        01  GNRTFILE-REC.
-           05  G-TAXID-SSN         PIC X(12).
+           05  G-TAXID-SSN         PIC X(11).
+           05  FILLER              PIC X(01).
            05  G-PERSON.
                10  G-PERSON-PREFIX PIC X(10).
                10  G-PERSON-FIRST-NAME
@@ -54,6 +55,19 @@
                10  G-ADDRESS-STATE PIC X(10).
                10  G-ADDRESS-POSTCODE
                                    PIC X(10).
+           05  FILLER              PIC X(01).
+           05  G-TELEPHONE.
+               10  G-TELEPHONE-AREA-CODE
+                                   PIC X(03).
+               10  FILLER          PIC X(01).
+               10  G-TELEPHONE-PREFIX
+                                   PIC X(03).
+               10  FILLER          PIC X(01).
+               10  G-TELEPHONE-SUFFIX
+                                   PIC X(04).
+               10  FILLER          PIC X(01).
+               10  G-TELEPHONE-EXTENSION
+                                   PIC X(04).
 
        WORKING-STORAGE SECTION.
       *------------------------
@@ -123,6 +137,7 @@
       *-----------------
 
            ADD  1                  TO W-GNRTFILE-RECS
+           MOVE SPACES             TO GNRTFILE-REC
       *     MOVE W-GNRTFILE-RECS          TO FAKER-SEED-NO
            MOVE W-GNRTFILE-RECS          TO W-SEED-REC-NO
            MOVE W-SEED-TEXT        TO FAKER-SEED-TEXT
@@ -177,6 +192,26 @@
            ELSE
                MOVE FAKER-RESPONSE-MSG
                                    TO G-ADDRESS
+           END-IF 
+
+      **** TELEPHONE:
+
+           SET  TELEPHONE          TO TRUE
+           
+           PERFORM SUB-2100-CALL-FAKER THRU SUB-2100-EXIT
+
+           IF      FAKER-RESPONSE-GOOD
+               MOVE FAKER-TELEPHONE-AREA-CODE
+                                   TO G-TELEPHONE-AREA-CODE
+               MOVE FAKER-TELEPHONE-PREFIX
+                                   TO G-TELEPHONE-PREFIX
+               MOVE FAKER-TELEPHONE-SUFFIX
+                                   TO G-TELEPHONE-SUFFIX
+               MOVE FAKER-TELEPHONE-EXTENSION
+                                   TO G-TELEPHONE-EXTENSION
+           ELSE
+               MOVE FAKER-RESPONSE-MSG
+                                   TO G-TELEPHONE
            END-IF 
 
            PERFORM SUB-9100-WRITE-GNRTFILE THRU SUB-9100-EXIT

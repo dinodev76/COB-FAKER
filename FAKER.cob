@@ -6,6 +6,7 @@
       * Date        Version  Description
       * ----        -------  -----------
       * 2020-02-08  1.0      First release
+      * 2020-02-11  1.0.1    Add BANK and PHONE numbers
       *================================================================*
 
        IDENTIFICATION DIVISION.
@@ -40,8 +41,10 @@
        01  W-FAKER-PROVIDER        PIC X(12).
        01  W-FAKRAND-PROG          PIC X(08)       VALUE 'FAKRAND'.
        01  W-FAKADDR-PROG          PIC X(08)       VALUE 'FAKADDR'.
+       01  W-FAKBANK-PROG          PIC X(08)       VALUE 'FAKBANK'.
        01  W-FAKCOMP-PROG          PIC X(08)       VALUE 'FAKCOMP'.
        01  W-FAKPERS-PROG          PIC X(08)       VALUE 'FAKPERS'.
+       01  W-FAKPHON-PROG          PIC X(08)       VALUE 'FAKPHON'.
        01  W-FAKTXID-PROG          PIC X(08)       VALUE 'FAKTXID'.
 
        01  FILLER                  PIC X(01)       VALUE 'Y'.
@@ -126,6 +129,9 @@
              WHEN 'ADDRESS'
                CALL W-FAKADDR-PROG
                                 USING L-PARAMETER
+             WHEN 'BANK'
+               CALL W-FAKBANK-PROG
+                                USING L-PARAMETER
              WHEN 'COMPANY'
                CALL W-FAKCOMP-PROG
                                 USING L-PARAMETER
@@ -134,6 +140,9 @@
                                 USING L-PARAMETER
              WHEN 'TAXID'
                CALL W-FAKTXID-PROG
+                                USING L-PARAMETER
+             WHEN 'TELEPHONE'
+               CALL W-FAKPHON-PROG
                                 USING L-PARAMETER
              WHEN OTHER
                SET  FAKER-UNKNOWN-PROVIDER
