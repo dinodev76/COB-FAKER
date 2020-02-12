@@ -53,8 +53,10 @@ These instructions will get you a copy of the project up and running on your loc
     FAKER calls one or more of the following subroutines from this project, as appropriate:
 
     * **FAKADDR**
+    * **FAKBANK**
     * **FAKCOMP**
     * **FAKPERS**
+    * **FAKPHON**
     * **FAKRAND**
     * **FAKTXID**
 
